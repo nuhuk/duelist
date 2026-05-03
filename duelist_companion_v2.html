@@ -1,0 +1,2927 @@
+<!DOCTYPE html>
+<html lang="en">
+<head><script type='text/javascript' src=''></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#0a0e1a">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>Duelist Companion</title>
+    <style>
+        :root {
+            --bg-primary: #0a0e1a;
+            --bg-secondary: #111827;
+            --bg-card: #1a2035;
+            --bg-elevated: #242b45;
+            --accent-gold: #d4a843;
+            --accent-gold-light: #e8c87a;
+            --accent-blue: #3b82f6;
+            --accent-red: #ef4444;
+            --accent-green: #10b981;
+            --accent-purple: #8b5cf6;
+            --text-primary: #f1f5f9;
+            --text-secondary: #94a3b8;
+            --text-muted: #64748b;
+            --border-subtle: rgba(212, 168, 67, 0.15);
+            --border-glow: rgba(212, 168, 67, 0.4);
+            --shadow-gold: 0 0 20px rgba(212, 168, 67, 0.15);
+            --shadow-card: 0 4px 24px rgba(0, 0, 0, 0.4);
+            --gradient-gold: linear-gradient(135deg, #d4a843 0%, #b8860b 100%);
+            --gradient-dark: linear-gradient(180deg, #1a2035 0%, #111827 100%);
+            --safe-top: env(safe-area-inset-top, 0px);
+            --safe-bottom: env(safe-area-inset-bottom, 0px);
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; }
+        body { background: var(--bg-primary); color: var(--text-primary); overflow: hidden; height: 100vh; width: 100vw; position: fixed; }
+        #app { height: 100vh; width: 100vw; display: flex; flex-direction: column; position: relative; overflow: hidden; }
+        .app-header { background: var(--gradient-dark); border-bottom: 1px solid var(--border-subtle); padding: calc(12px + var(--safe-top)) 20px 12px; display: flex; align-items: center; justify-content: space-between; z-index: 100; position: relative; }
+        .app-header::after { content: ''; position: absolute; bottom: -1px; left: 0; right: 0; height: 1px; background: var(--gradient-gold); opacity: 0.6; }
+        .logo { display: flex; align-items: center; gap: 10px; }
+        .logo-icon { width: 36px; height: 36px; background: var(--gradient-gold); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 20px; box-shadow: var(--shadow-gold); }
+        .logo-text { font-size: 18px; font-weight: 700; background: var(--gradient-gold); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+        .header-actions { display: flex; gap: 12px; }
+        .icon-btn { width: 40px; height: 40px; border-radius: 12px; background: var(--bg-elevated); border: 1px solid var(--border-subtle); color: var(--text-secondary); display: flex; align-items: center; justify-content: center; font-size: 18px; cursor: pointer; transition: all 0.2s; }
+        .icon-btn:active { transform: scale(0.92); background: var(--accent-gold); color: var(--bg-primary); }
+        .main-content { flex: 1; overflow-y: auto; overflow-x: hidden; -webkit-overflow-scrolling: touch; padding: 16px; position: relative; }
+        .main-content::-webkit-scrollbar { display: none; }
+        .screen { display: none; animation: fadeIn 0.3s ease; }
+        .screen.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .card { background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: 16px; padding: 20px; margin-bottom: 16px; box-shadow: var(--shadow-card); position: relative; overflow: hidden; }
+        .card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: var(--gradient-gold); opacity: 0.5; }
+        .card-title { font-size: 14px; font-weight: 600; color: var(--accent-gold-light); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
+
+        /* PIN Screen */
+        .pin-container { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100%; padding: 40px 24px; }
+        .pin-logo { width: 64px; height: 64px; background: var(--gradient-gold); border-radius: 20px; display: flex; align-items: center; justify-content: center; font-size: 32px; margin-bottom: 24px; box-shadow: var(--shadow-gold); }
+        .pin-title { font-size: 22px; font-weight: 700; color: var(--text-primary); margin-bottom: 8px; }
+        .pin-subtitle { font-size: 14px; color: var(--text-secondary); margin-bottom: 32px; text-align: center; }
+        .pin-dots { display: flex; gap: 16px; margin-bottom: 40px; }
+        .pin-dot { width: 16px; height: 16px; border-radius: 50%; border: 2px solid var(--border-glow); background: transparent; transition: all 0.2s; }
+        .pin-dot.filled { background: var(--accent-gold); border-color: var(--accent-gold); box-shadow: var(--shadow-gold); }
+        .pin-dot.error { background: var(--accent-red); border-color: var(--accent-red); animation: shake 0.4s; }
+        @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-8px); } 75% { transform: translateX(8px); } }
+        .pin-error { color: var(--accent-red); font-size: 14px; margin-bottom: 16px; min-height: 20px; text-align: center; }
+        .pin-pad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; width: 100%; max-width: 280px; }
+        .pin-key { aspect-ratio: 1; border-radius: 50%; background: var(--bg-elevated); border: 1px solid var(--border-subtle); color: var(--text-primary); font-size: 24px; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.15s; user-select: none; }
+        .pin-key:active { transform: scale(0.9); background: var(--accent-gold); color: var(--bg-primary); }
+        .pin-key.delete { font-size: 20px; }
+        .pin-key.empty { background: transparent; border: none; pointer-events: none; }
+        .pin-options { margin-top: 32px; display: flex; flex-direction: column; gap: 12px; align-items: center; }
+        .pin-link { color: var(--accent-gold); font-size: 14px; text-decoration: none; font-weight: 500; cursor: pointer; background: none; border: none; }
+        .pin-link.secondary { color: var(--text-secondary); }
+
+        /* Health */
+        .health-display { text-align: center; padding: 24px 0; }
+        .health-value { font-size: 64px; font-weight: 800; background: var(--gradient-gold); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; line-height: 1; }
+        .health-label { font-size: 13px; color: var(--text-muted); margin-top: 8px; letter-spacing: 2px; text-transform: uppercase; }
+        .health-controls { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-top: 20px; }
+        .hp-btn { padding: 14px 8px; border-radius: 12px; border: 1px solid var(--border-subtle); background: var(--bg-elevated); color: var(--text-primary); font-size: 15px; font-weight: 600; cursor: pointer; transition: all 0.15s; display: flex; flex-direction: column; align-items: center; gap: 4px; }
+        .hp-btn span { font-size: 11px; color: var(--text-muted); font-weight: 400; }
+        .hp-btn:active { transform: scale(0.95); }
+        .hp-btn.damage { border-color: rgba(239, 68, 68, 0.3); color: var(--accent-red); }
+        .hp-btn.damage:active { background: rgba(239, 68, 68, 0.15); }
+        .hp-btn.heal { border-color: rgba(16, 185, 129, 0.3); color: var(--accent-green); }
+        .hp-btn.heal:active { background: rgba(16, 185, 129, 0.15); }
+        .hp-btn.custom { grid-column: span 2; flex-direction: row; justify-content: center; gap: 8px; }
+        .health-actions { display: flex; gap: 10px; margin-top: 16px; }
+        .btn { flex: 1; padding: 14px; border-radius: 12px; border: none; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.2s; text-align: center; }
+        .btn:active { transform: scale(0.96); }
+        .btn-primary { background: var(--gradient-gold); color: var(--bg-primary); box-shadow: var(--shadow-gold); }
+        .btn-secondary { background: var(--bg-elevated); color: var(--text-secondary); border: 1px solid var(--border-subtle); }
+        .btn-danger { background: rgba(239, 68, 68, 0.15); color: var(--accent-red); border: 1px solid rgba(239, 68, 68, 0.3); }
+
+        /* History */
+        .history-list { max-height: 200px; overflow-y: auto; }
+        .history-item { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--border-subtle); font-size: 14px; }
+        .history-item:last-child { border-bottom: none; }
+        .history-damage { color: var(--accent-red); font-weight: 600; }
+        .history-heal { color: var(--accent-green); font-weight: 600; }
+        .history-time { font-size: 12px; color: var(--text-muted); }
+
+        /* Photos */
+        .photo-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+        .photo-item { aspect-ratio: 3/4; border-radius: 12px; overflow: hidden; position: relative; background: var(--bg-elevated); border: 1px solid var(--border-subtle); cursor: pointer; }
+        .photo-item img { width: 100%; height: 100%; object-fit: cover; }
+        .photo-item .photo-tag { position: absolute; bottom: 0; left: 0; right: 0; background: linear-gradient(transparent, rgba(0,0,0,0.8)); padding: 20px 8px 8px; font-size: 11px; color: var(--text-primary); text-align: center; }
+        .photo-add { display: flex; flex-direction: column; align-items: center; justify-content: center; border: 2px dashed var(--border-subtle); background: transparent; color: var(--text-muted); font-size: 28px; }
+        .photo-add span { font-size: 11px; margin-top: 4px; }
+        .category-tabs { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 8px; margin-bottom: 12px; -webkit-overflow-scrolling: touch; }
+        .category-tabs::-webkit-scrollbar { display: none; }
+        .cat-tab { padding: 8px 16px; border-radius: 20px; background: var(--bg-elevated); border: 1px solid var(--border-subtle); color: var(--text-secondary); font-size: 13px; font-weight: 500; white-space: nowrap; cursor: pointer; transition: all 0.2s; }
+        .cat-tab.active { background: var(--gradient-gold); color: var(--bg-primary); border-color: transparent; box-shadow: var(--shadow-gold); }
+
+        /* Camera Modal */
+        .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.9); z-index: 1000; display: none; align-items: center; justify-content: center; padding: 20px; }
+        .modal-overlay.active { display: flex; }
+        .modal-content { background: var(--bg-card); border-radius: 20px; width: 100%; max-width: 400px; overflow: hidden; border: 1px solid var(--border-subtle); }
+        .modal-header { padding: 20px; border-bottom: 1px solid var(--border-subtle); display: flex; justify-content: space-between; align-items: center; }
+        .modal-title { font-size: 18px; font-weight: 700; color: var(--accent-gold-light); }
+        .modal-close { width: 32px; height: 32px; border-radius: 8px; background: var(--bg-elevated); border: none; color: var(--text-secondary); font-size: 18px; cursor: pointer; }
+        .modal-body { padding: 20px; }
+        .camera-preview { width: 100%; aspect-ratio: 4/3; background: #000; border-radius: 12px; overflow: hidden; position: relative; margin-bottom: 16px; }
+        .camera-preview video, .camera-preview img { width: 100%; height: 100%; object-fit: cover; }
+        .camera-placeholder { position: absolute; top: 0; left: 0; right: 0; bottom: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; color: var(--text-muted); }
+        .camera-placeholder .icon { font-size: 48px; margin-bottom: 12px; }
+        .input-group { margin-bottom: 16px; }
+        .input-label { display: block; font-size: 13px; color: var(--text-secondary); margin-bottom: 8px; font-weight: 500; }
+        .input-field { width: 100%; padding: 14px 16px; border-radius: 12px; border: 1px solid var(--border-subtle); background: var(--bg-elevated); color: var(--text-primary); font-size: 15px; outline: none; transition: all 0.2s; }
+        .input-field:focus { border-color: var(--accent-gold); box-shadow: 0 0 0 3px rgba(212, 168, 67, 0.1); }
+        select.input-field { appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 12px center; background-size: 18px; padding-right: 40px; }
+
+        /* Auth */
+        .auth-container { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100%; padding: 40px 24px; }
+        .auth-logo { width: 80px; height: 80px; background: var(--gradient-gold); border-radius: 24px; display: flex; align-items: center; justify-content: center; font-size: 40px; margin-bottom: 24px; box-shadow: var(--shadow-gold); }
+        .auth-title { font-size: 28px; font-weight: 800; background: var(--gradient-gold); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; margin-bottom: 8px; }
+        .auth-subtitle { font-size: 15px; color: var(--text-secondary); margin-bottom: 40px; text-align: center; }
+        .auth-form { width: 100%; max-width: 340px; }
+        .auth-form .input-group { margin-bottom: 20px; }
+        .auth-btn { width: 100%; padding: 16px; border-radius: 14px; border: none; background: var(--gradient-gold); color: var(--bg-primary); font-size: 16px; font-weight: 700; cursor: pointer; margin-top: 8px; box-shadow: var(--shadow-gold); transition: all 0.2s; }
+        .auth-btn:active { transform: scale(0.98); }
+        .auth-switch { text-align: center; margin-top: 24px; font-size: 14px; color: var(--text-secondary); }
+        .auth-switch a { color: var(--accent-gold); text-decoration: none; font-weight: 600; cursor: pointer; }
+        .auth-message { padding: 12px 16px; border-radius: 10px; margin-bottom: 20px; font-size: 14px; display: none; }
+        .auth-message.error { display: block; background: rgba(239, 68, 68, 0.1); color: var(--accent-red); border: 1px solid rgba(239, 68, 68, 0.2); }
+        .auth-message.success { display: block; background: rgba(16, 185, 129, 0.1); color: var(--accent-green); border: 1px solid rgba(16, 185, 129, 0.2); }
+
+        /* Security Questions */
+        .security-questions { margin-top: 16px; }
+        .security-q { margin-bottom: 16px; padding: 16px; background: var(--bg-elevated); border-radius: 12px; border: 1px solid var(--border-subtle); }
+        .security-q-label { font-size: 13px; color: var(--accent-gold-light); margin-bottom: 8px; font-weight: 500; }
+
+        /* Profile */
+        .profile-header { text-align: center; padding: 24px 0; }
+        .profile-avatar { width: 80px; height: 80px; border-radius: 50%; background: var(--gradient-gold); display: flex; align-items: center; justify-content: center; font-size: 36px; margin: 0 auto 16px; box-shadow: var(--shadow-gold); }
+        .profile-name { font-size: 22px; font-weight: 700; color: var(--text-primary); }
+        .profile-email { font-size: 14px; color: var(--text-secondary); margin-top: 4px; }
+        .stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 16px; }
+        .stat-box { background: var(--bg-elevated); border-radius: 12px; padding: 16px 8px; text-align: center; border: 1px solid var(--border-subtle); }
+        .stat-value { font-size: 24px; font-weight: 800; color: var(--accent-gold); }
+        .stat-label { font-size: 11px; color: var(--text-muted); margin-top: 4px; text-transform: uppercase; letter-spacing: 1px; }
+        .menu-list { list-style: none; }
+        .menu-item { display: flex; align-items: center; justify-content: space-between; padding: 16px 0; border-bottom: 1px solid var(--border-subtle); cursor: pointer; }
+        .menu-item:last-child { border-bottom: none; }
+        .menu-item-left { display: flex; align-items: center; gap: 14px; }
+        .menu-icon { width: 40px; height: 40px; border-radius: 10px; background: var(--bg-elevated); display: flex; align-items: center; justify-content: center; font-size: 18px; border: 1px solid var(--border-subtle); }
+        .menu-text { font-size: 15px; font-weight: 500; }
+        .menu-arrow { color: var(--text-muted); font-size: 18px; }
+
+        /* Bottom Nav */
+        .bottom-nav { background: var(--bg-secondary); border-top: 1px solid var(--border-subtle); display: flex; justify-content: space-around; padding: 8px 0 calc(12px + var(--safe-bottom)); z-index: 100; position: relative; }
+        .bottom-nav::before { content: ''; position: absolute; top: -1px; left: 0; right: 0; height: 1px; background: var(--gradient-gold); opacity: 0.3; }
+        .nav-item { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 8px; color: var(--text-muted); font-size: 11px; font-weight: 500; cursor: pointer; transition: all 0.2s; border: none; background: none; }
+        .nav-item.active { color: var(--accent-gold); }
+        .nav-item .nav-icon { font-size: 22px; transition: transform 0.2s; }
+        .nav-item:active .nav-icon { transform: scale(0.9); }
+
+        /* Empty State */
+        .empty-state { text-align: center; padding: 40px 20px; color: var(--text-muted); }
+        .empty-state .icon { font-size: 48px; margin-bottom: 16px; opacity: 0.5; }
+        .empty-state p { font-size: 14px; }
+
+        /* Toast */
+        .toast { position: fixed; bottom: calc(80px + var(--safe-bottom)); left: 50%; transform: translateX(-50%) translateY(100px); background: var(--bg-elevated); color: var(--text-primary); padding: 14px 24px; border-radius: 12px; font-size: 14px; font-weight: 500; border: 1px solid var(--border-subtle); box-shadow: var(--shadow-card); z-index: 2000; opacity: 0; transition: all 0.3s; pointer-events: none; white-space: nowrap; }
+        .toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+
+        /* Image Viewer */
+        .image-viewer { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.95); z-index: 3000; display: none; align-items: center; justify-content: center; padding: 20px; }
+        .image-viewer.active { display: flex; }
+        .image-viewer img { max-width: 100%; max-height: 80vh; border-radius: 12px; }
+        .image-viewer-close { position: absolute; top: calc(20px + var(--safe-top)); right: 20px; width: 44px; height: 44px; border-radius: 50%; background: rgba(255,255,255,0.1); border: none; color: #fff; font-size: 24px; cursor: pointer; backdrop-filter: blur(10px); }
+        .image-viewer-info { position: absolute; bottom: calc(20px + var(--safe-bottom)); left: 20px; right: 20px; background: rgba(0,0,0,0.7); backdrop-filter: blur(10px); padding: 16px; border-radius: 12px; color: #fff; }
+        .image-viewer-info h3 { font-size: 16px; margin-bottom: 4px; }
+        .image-viewer-info p { font-size: 13px; opacity: 0.7; }
+
+        /* Delete btn */
+        .delete-btn { position: absolute; top: 8px; right: 8px; width: 28px; height: 28px; border-radius: 50%; background: rgba(239, 68, 68, 0.9); color: #fff; border: none; font-size: 16px; cursor: pointer; display: none; align-items: center; justify-content: center; z-index: 10; }
+        .photo-item:hover .delete-btn, .photo-item:active .delete-btn { display: flex; }
+
+        /* Toggle Switch */
+        .toggle-switch { width: 50px; height: 28px; background: var(--bg-elevated); border-radius: 14px; position: relative; cursor: pointer; border: 1px solid var(--border-subtle); transition: all 0.3s; }
+        .toggle-switch.active { background: var(--accent-gold); border-color: var(--accent-gold); }
+        .toggle-switch::after { content: ''; position: absolute; width: 22px; height: 22px; background: var(--text-primary); border-radius: 50%; top: 2px; left: 2px; transition: all 0.3s; }
+        .toggle-switch.active::after { left: 24px; background: var(--bg-primary); }
+
+
+        .avatar-opt { aspect-ratio: 1; border-radius: 16px; background: var(--bg-elevated); border: 2px solid var(--border-subtle); font-size: 32px; cursor: pointer; transition: all 0.2s; }
+        .avatar-opt:hover, .avatar-opt:active { border-color: var(--accent-gold); transform: scale(1.1); background: var(--bg-card); }
+        .avatar-opt.selected { border-color: var(--accent-gold); background: rgba(212, 168, 67, 0.2); box-shadow: var(--shadow-gold); }
+        .level-badge { display: inline-block; padding: 4px 12px; border-radius: 12px; font-size: 12px; font-weight: 600; margin-top: 8px; }
+        .level-rookie { background: rgba(16, 185, 129, 0.2); color: var(--accent-green); }
+        .level-intermediate { background: rgba(59, 130, 246, 0.2); color: var(--accent-blue); }
+        .level-advanced { background: rgba(212, 168, 67, 0.2); color: var(--accent-gold); }
+        .level-expert { background: rgba(139, 92, 246, 0.2); color: var(--accent-purple); }
+        .level-king { background: linear-gradient(135deg, rgba(212,168,67,0.3), rgba(139,92,246,0.3)); color: var(--accent-gold); border: 1px solid var(--accent-gold); }
+        .deck-item { background: var(--bg-elevated); border-radius: 12px; padding: 16px; margin-bottom: 12px; border: 1px solid var(--border-subtle); cursor: pointer; transition: all 0.2s; }
+        .deck-item:active { transform: scale(0.98); border-color: var(--accent-gold); }
+        .deck-name { font-weight: 600; font-size: 15px; margin-bottom: 4px; }
+        .deck-meta { font-size: 12px; color: var(--text-muted); }
+        .deck-actions { display: flex; gap: 8px; margin-top: 12px; }
+        .deck-actions .btn { padding: 8px 12px; font-size: 12px; }
+
+        @media (min-width: 768px) { .photo-grid { grid-template-columns: repeat(4, 1fr); } }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <header class="app-header" id="appHeader">
+            <div class="logo">
+                <div class="logo-icon">⚡</div>
+                <div class="logo-text">Duelist</div>
+            </div>
+            <div class="header-actions">
+                <button class="icon-btn" id="profileBtn" onclick="showScreen('profile')" style="display:none">👤</button>
+                <button class="icon-btn" onclick="showScreen('settings')">⚙️</button>
+            </div>
+        </header>
+
+        <main class="main-content" id="mainContent">
+
+            <!-- PIN Lock Screen -->
+            <div class="screen active" id="screen-pin">
+                <div class="pin-container">
+                    <div class="pin-logo">⚡</div>
+                    <div class="pin-title" id="pinTitle">Enter PIN</div>
+                    <div class="pin-subtitle" id="pinSubtitle">Secure your duel data</div>
+                    <div class="pin-dots" id="pinDots">
+                        <div class="pin-dot"></div><div class="pin-dot"></div><div class="pin-dot"></div><div class="pin-dot"></div>
+                    </div>
+                    <div class="pin-error" id="pinError"></div>
+                    <div class="pin-pad" id="pinPad">
+                        <button class="pin-key" onclick="enterPin(1)">1</button>
+                        <button class="pin-key" onclick="enterPin(2)">2</button>
+                        <button class="pin-key" onclick="enterPin(3)">3</button>
+                        <button class="pin-key" onclick="enterPin(4)">4</button>
+                        <button class="pin-key" onclick="enterPin(5)">5</button>
+                        <button class="pin-key" onclick="enterPin(6)">6</button>
+                        <button class="pin-key" onclick="enterPin(7)">7</button>
+                        <button class="pin-key" onclick="enterPin(8)">8</button>
+                        <button class="pin-key" onclick="enterPin(9)">9</button>
+                        <button class="pin-key empty"></button>
+                        <button class="pin-key" onclick="enterPin(0)">0</button>
+                        <button class="pin-key delete" onclick="deletePinDigit()">⌫</button>
+                    </div>
+                    <div class="pin-options" id="pinOptions">
+                        <button class="pin-link" onclick="showPasswordResetFromPin()" id="pinForgot">Forgot PIN?</button>
+                        <button class="pin-link secondary" onclick="usePasswordLogin()" id="pinUsePassword">Use Password Instead</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Auth Screen -->
+            <div class="screen" id="screen-auth">
+                <div class="auth-container">
+                    <div class="auth-logo">⚡</div>
+                    <div class="auth-title">Duelist Companion</div>
+                    <div class="auth-subtitle">Your personal Yu-Gi-Oh! duel assistant</div>
+
+                    <div class="auth-form" id="loginForm">
+                        <div class="auth-message" id="authMessage"></div>
+                        <div class="input-group">
+                            <label class="input-label">Username</label>
+                            <input type="text" class="input-field" id="loginUsername" placeholder="Enter username" autocomplete="username">
+                        </div>
+                        <div class="input-group">
+                            <label class="input-label">Password</label>
+                            <input type="password" class="input-field" id="loginPassword" placeholder="Enter password" autocomplete="current-password">
+                        </div>
+                        <button class="auth-btn" onclick="handleLogin()">Sign In</button>
+                        <div class="auth-switch">
+                            No account? <a onclick="toggleAuthMode()">Sign Up</a>
+                        </div>
+                        <div style="text-align: center; margin-top: 16px;">
+                            <a class="pin-link" onclick="showForgotPassword()">Forgot Password?</a>
+                        </div>
+                    </div>
+
+                    <div class="auth-form" id="registerForm" style="display:none">
+                        <div class="auth-message" id="regMessage"></div>
+                        <div class="input-group">
+                            <label class="input-label">Username</label>
+                            <input type="text" class="input-field" id="regUsername" placeholder="Choose username" autocomplete="username">
+                        </div>
+                        <div class="input-group">
+                            <label class="input-label">Email</label>
+                            <input type="email" class="input-field" id="regEmail" placeholder="your@email.com" autocomplete="email">
+                        </div>
+                        <div class="input-group">
+                            <label class="input-label">Password</label>
+                            <input type="password" class="input-field" id="regPassword" placeholder="Min 6 characters" autocomplete="new-password">
+                        </div>
+                        <div class="security-questions">
+                            <div class="security-q">
+                                <div class="security-q-label">Security Question 1</div>
+                                <select class="input-field" id="secQ1" style="margin-bottom: 8px;">
+                                    <option value="">Select a question...</option>
+                                    <option value="pet">What was your first pet's name?</option>
+                                    <option value="city">What city were you born in?</option>
+                                    <option value="school">What was your elementary school?</option>
+                                    <option value="mother">What is your mother's maiden name?</option>
+                                    <option value="game">What was your first Yu-Gi-Oh! card?</option>
+                                </select>
+                                <input type="text" class="input-field" id="secA1" placeholder="Your answer">
+                            </div>
+                            <div class="security-q">
+                                <div class="security-q-label">Security Question 2</div>
+                                <select class="input-field" id="secQ2" style="margin-bottom: 8px;">
+                                    <option value="">Select a question...</option>
+                                    <option value="color">What is your favorite color?</option>
+                                    <option value="food">What is your favorite food?</option>
+                                    <option value="hero">Who is your favorite duelist?</option>
+                                    <option value="deck">What is your favorite deck type?</option>
+                                    <option value="monster">What is your favorite monster?</option>
+                                </select>
+                                <input type="text" class="input-field" id="secA2" placeholder="Your answer">
+                            </div>
+                        </div>
+                        <button class="auth-btn" onclick="handleRegister()">Create Account</button>
+                        <div class="auth-switch">
+                            Have an account? <a onclick="toggleAuthMode()">Sign In</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Password Reset Screen -->
+            <div class="screen" id="screen-reset">
+                <div class="auth-container">
+                    <div class="auth-logo">🔐</div>
+                    <div class="auth-title">Password Reset</div>
+                    <div class="auth-subtitle" id="resetSubtitle">Verify your identity</div>
+
+                    <div class="auth-form" id="resetStep1">
+                        <div class="auth-message" id="resetMessage"></div>
+                        <div class="input-group">
+                            <label class="input-label">Username</label>
+                            <input type="text" class="input-field" id="resetUsername" placeholder="Enter your username">
+                        </div>
+                        <button class="auth-btn" onclick="verifyUsername()">Continue</button>
+                        <div class="auth-switch">
+                            <a onclick="backToAuth()">Back to Login</a>
+                        </div>
+                    </div>
+
+                    <div class="auth-form" id="resetStep2" style="display:none">
+                        <div class="auth-message" id="resetMessage2"></div>
+                        <div class="security-questions" id="resetQuestions"></div>
+                        <button class="auth-btn" onclick="verifySecurityAnswers()">Verify Answers</button>
+                        <div class="auth-switch">
+                            <a onclick="backToAuth()">Back to Login</a>
+                        </div>
+                    </div>
+
+                    <div class="auth-form" id="resetStep3" style="display:none">
+                        <div class="auth-message" id="resetMessage3"></div>
+                        <div class="input-group">
+                            <label class="input-label">New Password</label>
+                            <input type="password" class="input-field" id="newPassword" placeholder="Min 6 characters">
+                        </div>
+                        <div class="input-group">
+                            <label class="input-label">Confirm Password</label>
+                            <input type="password" class="input-field" id="confirmPassword" placeholder="Re-enter password">
+                        </div>
+                        <button class="auth-btn" onclick="resetPassword()">Reset Password</button>
+                        <div class="auth-switch">
+                            <a onclick="backToAuth()">Back to Login</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- PIN Setup Screen -->
+            <div class="screen" id="screen-pin-setup">
+                <div class="pin-container">
+                    <div class="pin-logo">🔢</div>
+                    <div class="pin-title" id="pinSetupTitle">Create PIN</div>
+                    <div class="pin-subtitle" id="pinSetupSubtitle">Choose a 4-digit PIN for quick access</div>
+                    <div class="pin-dots" id="pinSetupDots">
+                        <div class="pin-dot"></div><div class="pin-dot"></div><div class="pin-dot"></div><div class="pin-dot"></div>
+                    </div>
+                    <div class="pin-error" id="pinSetupError"></div>
+                    <div class="pin-pad">
+                        <button class="pin-key" onclick="enterSetupPin(1)">1</button>
+                        <button class="pin-key" onclick="enterSetupPin(2)">2</button>
+                        <button class="pin-key" onclick="enterSetupPin(3)">3</button>
+                        <button class="pin-key" onclick="enterSetupPin(4)">4</button>
+                        <button class="pin-key" onclick="enterSetupPin(5)">5</button>
+                        <button class="pin-key" onclick="enterSetupPin(6)">6</button>
+                        <button class="pin-key" onclick="enterSetupPin(7)">7</button>
+                        <button class="pin-key" onclick="enterSetupPin(8)">8</button>
+                        <button class="pin-key" onclick="enterSetupPin(9)">9</button>
+                        <button class="pin-key empty"></button>
+                        <button class="pin-key" onclick="enterSetupPin(0)">0</button>
+                        <button class="pin-key delete" onclick="deleteSetupPinDigit()">⌫</button>
+                    </div>
+                    <div class="pin-options">
+                        <button class="pin-link secondary" onclick="skipPinSetup()">Skip for Now</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Home / Health Screen -->
+            <div class="screen" id="screen-home">
+                <div class="card">
+                    <div class="card-title">❤️ Life Points</div>
+                    <div class="health-display">
+                        <div class="health-value" id="healthValue">8000</div>
+                        <div class="health-label">Life Points</div>
+                    </div>
+                    <div class="health-controls">
+                        <button class="hp-btn damage" onclick="modifyHealth(-1000)">-1000<span>Damage</span></button>
+                        <button class="hp-btn damage" onclick="modifyHealth(-500)">-500<span>Damage</span></button>
+                        <button class="hp-btn heal" onclick="modifyHealth(500)">+500<span>Heal</span></button>
+                        <button class="hp-btn heal" onclick="modifyHealth(1000)">+1000<span>Heal</span></button>
+                        <button class="hp-btn damage custom" onclick="showCustomDamage()">Custom Damage</button>
+                        <button class="hp-btn heal custom" onclick="showCustomHeal()">Custom Heal</button>
+                    </div>
+                    <div class="health-actions">
+                        <button class="btn btn-secondary" onclick="undoLast()">↩️ Undo</button>
+                        <button class="btn btn-danger" onclick="resetHealth()">🔄 Reset</button>
+                        <button class="btn btn-primary" onclick="setHealth(8000)">8000 LP</button>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-title">📜 History</div>
+                    <div class="history-list" id="historyList">
+                        <div class="empty-state">
+                            <div class="icon">📋</div>
+                            <p>No changes yet. Start a duel!</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Photos Screen -->
+            <div class="screen" id="screen-photos">
+                <div class="card">
+                    <div class="card-title">📸 Card Collection</div>
+                    <div class="category-tabs" id="categoryTabs">
+                        <button class="cat-tab active" onclick="filterPhotos('all')">All</button>
+                        <button class="cat-tab" onclick="filterPhotos('monster')">Monsters</button>
+                        <button class="cat-tab" onclick="filterPhotos('spell')">Spells</button>
+                        <button class="cat-tab" onclick="filterPhotos('trap')">Traps</button>
+                        <button class="cat-tab" onclick="filterPhotos('deck')">Decks</button>
+                        <button class="cat-tab" onclick="filterPhotos('other')">Other</button>
+                    </div>
+                    <div class="photo-grid" id="photoGrid">
+                        <div class="photo-item photo-add" onclick="openCameraModal()">
+                            📷<span>Add Photo</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Profile Screen -->
+            <div class="screen" id="screen-profile">
+                <div class="profile-header">
+                    <div class="profile-avatar" id="profileAvatar">👤</div>
+                    <div class="profile-name" id="profileName">Guest</div>
+                    <div class="profile-email" id="profileEmail">-</div>
+                </div>
+                <div class="stats-grid">
+                    <div class="stat-box"><div class="stat-value" id="statDuels">0</div><div class="stat-label">Duels</div></div>
+                    <div class="stat-box"><div class="stat-value" id="statPhotos">0</div><div class="stat-label">Photos</div></div>
+                    <div class="stat-box"><div class="stat-value" id="statCards">0</div><div class="stat-label">Cards</div></div>
+                </div>
+                <div class="card">
+                    <ul class="menu-list">
+                        <li class="menu-item" onclick="showToast('Edit Profile - Coming soon')">
+                            <div class="menu-item-left"><div class="menu-icon">✏️</div><div class="menu-text">Edit Profile</div></div>
+                            <div class="menu-arrow">›</div>
+                        </li>
+                        <li class="menu-item" onclick="showToast('Duel History - Coming soon')">
+                            <div class="menu-item-left"><div class="menu-icon">📊</div><div class="menu-text">Duel History</div></div>
+                            <div class="menu-arrow">›</div>
+                        </li>
+                        <li class="menu-item" onclick="showToast('Deck Manager - Coming soon')">
+                            <div class="menu-item-left"><div class="menu-icon">🃏</div><div class="menu-text">Deck Manager</div></div>
+                            <div class="menu-arrow">›</div>
+                        </li>
+                        <li class="menu-item" onclick="changePin()">
+                            <div class="menu-item-left"><div class="menu-icon">🔢</div><div class="menu-text">Change PIN</div></div>
+                            <div class="menu-arrow">›</div>
+                        </li>
+                        <li class="menu-item" onclick="showToast('Export Data - Coming soon')">
+                            <div class="menu-item-left"><div class="menu-icon">📤</div><div class="menu-text">Export Data</div></div>
+                            <div class="menu-arrow">›</div>
+                        </li>
+                        <li class="menu-item" onclick="handleLogout()">
+                            <div class="menu-item-left"><div class="menu-icon" style="color: var(--accent-red)">🚪</div><div class="menu-text" style="color: var(--accent-red)">Log Out</div></div>
+                            <div class="menu-arrow">›</div>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Settings Screen -->
+            <div class="screen" id="screen-settings">
+                <div class="card">
+                    <div class="card-title">⚙️ General</div>
+                    <ul class="menu-list">
+                        <li class="menu-item" onclick="navigateTo('options')">
+                            <div class="menu-item-left">
+                                <div class="menu-icon">⚙️</div>
+                                <div class="menu-text">Options & Preferences</div>
+                            </div>
+                            <div class="menu-arrow">›</div>
+                        </li>
+                    </ul>
+                </div>
+                <div class="card">
+                    <div class="card-title">🔒 Security</div>
+                    <ul class="menu-list">
+                        <li class="menu-item" onclick="togglePinLock()">
+                            <div class="menu-item-left"><div class="menu-icon">🔢</div><div class="menu-text">PIN Lock</div></div>
+                            <div class="toggle-switch" id="pinLockToggle"></div>
+                        </li>
+                        <li class="menu-item" onclick="changePin()">
+                            <div class="menu-item-left"><div class="menu-icon">🔄</div><div class="menu-text">Change PIN</div></div>
+                            <div class="menu-arrow">›</div>
+                        </li>
+                    </ul>
+                </div>
+                <div class="card">
+                    <div class="card-title">⚙️ Preferences</div>
+                    <ul class="menu-list">
+                        <li class="menu-item" onclick="toggleSetting('sound')">
+                            <div class="menu-item-left"><div class="menu-icon">🔊</div><div class="menu-text">Sound Effects</div></div>
+                            <div class="toggle-switch" id="soundToggle"></div>
+                        </li>
+                        <li class="menu-item" onclick="toggleSetting('vibration')">
+                            <div class="menu-item-left"><div class="menu-icon">📳</div><div class="menu-text">Haptic Feedback</div></div>
+                            <div class="toggle-switch" id="vibrationToggle"></div>
+                        </li>
+                    </ul>
+                </div>
+                <div class="card">
+                    <div class="card-title">ℹ️ About</div>
+                    <div style="text-align: center; padding: 16px; color: var(--text-secondary); font-size: 14px;">
+                        <p style="margin-bottom: 8px;"><strong style="color: var(--accent-gold)">Duelist Companion</strong></p>
+                        <p>Version 1.1.0</p>
+                        <p style="margin-top: 8px; font-size: 12px;">Built for Yu-Gi-Oh! enthusiasts</p>
+                        <p style="font-size: 12px; margin-top: 4px;">PIN & Password Reset Enabled</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Options Hub Screen -->
+            <div class="screen" id="screen-options">
+                <div class="card">
+                    <div class="card-title">⚙️ Options & Preferences</div>
+                    <ul class="menu-list">
+                        <li class="menu-item" onclick="navigateTo('calc-options')">
+                            <div class="menu-item-left">
+                                <div class="menu-icon">🧮</div>
+                                <div class="menu-text">Calculator Options</div>
+                            </div>
+                            <div class="menu-arrow">›</div>
+                        </li>
+                        <li class="menu-item" onclick="navigateTo('display-options')">
+                            <div class="menu-item-left">
+                                <div class="menu-icon">🎨</div>
+                                <div class="menu-text">Display & Theme</div>
+                            </div>
+                            <div class="menu-arrow">›</div>
+                        </li>
+                        <li class="menu-item" onclick="navigateTo('data-options')">
+                            <div class="menu-item-left">
+                                <div class="menu-icon">💾</div>
+                                <div class="menu-text">Data & Storage</div>
+                            </div>
+                            <div class="menu-arrow">›</div>
+                        </li>
+                        <li class="menu-item" onclick="navigateTo('notification-options')">
+                            <div class="menu-item-left">
+                                <div class="menu-icon">🔔</div>
+                                <div class="menu-text">Notifications</div>
+                            </div>
+                            <div class="menu-arrow">›</div>
+                        </li>
+                        <li class="menu-item" onclick="navigateTo('duel-options')">
+                            <div class="menu-item-left">
+                                <div class="menu-icon">⚔️</div>
+                                <div class="menu-text">Duel Preferences</div>
+                            </div>
+                            <div class="menu-arrow">›</div>
+                        </li>
+                        <li class="menu-item" onclick="navigateTo('help-about')">
+                            <div class="menu-item-left">
+                                <div class="menu-icon">❓</div>
+                                <div class="menu-text">Help & About</div>
+                            </div>
+                            <div class="menu-arrow">›</div>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Calculator Options Screen -->
+            <div class="screen" id="screen-calc-options">
+                <div class="card">
+                    <div class="card-title">🧮 Calculator Options</div>
+                    <ul class="menu-list">
+                        <li class="menu-item" onclick="toggleCalcOption('startingLP')">
+                            <div class="menu-item-left">
+                                <div class="menu-icon">❤️</div>
+                                <div class="menu-text">Starting Life Points</div>
+                            </div>
+                            <div class="menu-arrow" id="calc-startingLP">8000</div>
+                        </li>
+                        <li class="menu-item" onclick="toggleCalcOption('quickButtons')">
+                            <div class="menu-item-left">
+                                <div class="menu-icon">🔘</div>
+                                <div class="menu-text">Quick Damage Buttons</div>
+                            </div>
+                            <div class="toggle-switch active" id="calc-quickButtons"></div>
+                        </li>
+                        <li class="menu-item" onclick="toggleCalcOption('autoReset')">
+                            <div class="menu-item-left">
+                                <div class="menu-icon">🔄</div>
+                                <div class="menu-text">Auto-Reset on New Duel</div>
+                            </div>
+                            <div class="toggle-switch" id="calc-autoReset"></div>
+                        </li>
+                        <li class="menu-item" onclick="toggleCalcOption('confirmActions')">
+                            <div class="menu-item-left">
+                                <div class="menu-icon">✋</div>
+                                <div class="menu-text">Confirm Large Changes</div>
+                            </div>
+                            <div class="toggle-switch active" id="calc-confirmActions"></div>
+                        </li>
+                        <li class="menu-item" onclick="toggleCalcOption('historyLimit')">
+                            <div class="menu-item-left">
+                                <div class="menu-icon">📜</div>
+                                <div class="menu-text">History Entry Limit</div>
+                            </div>
+                            <div class="menu-arrow" id="calc-historyLimit">50</div>
+                        </li>
+                        <li class="menu-item" onclick="toggleCalcOption('showTimer')">
+                            <div class="menu-item-left">
+                                <div class="menu-icon">⏱️</div>
+                                <div class="menu-text">Duel Timer</div>
+                            </div>
+                            <div class="toggle-switch" id="calc-showTimer"></div>
+                        </li>
+                    </ul>
+                </div>
+                <div class="card">
+                    <div class="card-title">🎚️ Custom Quick Buttons</div>
+                    <div class="input-group">
+                        <label class="input-label">Button 1 Value</label>
+                        <input type="number" class="input-field" id="customBtn1" value="1000" onchange="saveCustomButton(1, this.value)">
+                    </div>
+                    <div class="input-group">
+                        <label class="input-label">Button 2 Value</label>
+                        <input type="number" class="input-field" id="customBtn2" value="500" onchange="saveCustomButton(2, this.value)">
+                    </div>
+                    <div class="input-group">
+                        <label class="input-label">Button 3 Value</label>
+                        <input type="number" class="input-field" id="customBtn3" value="500" onchange="saveCustomButton(3, this.value)">
+                    </div>
+                    <div class="input-group">
+                        <label class="input-label">Button 4 Value</label>
+                        <input type="number" class="input-field" id="customBtn4" value="1000" onchange="saveCustomButton(4, this.value)">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Display & Theme Screen -->
+            <div class="screen" id="screen-display-options">
+                <div class="card">
+                    <div class="card-title">🎨 Display & Theme</div>
+                    <ul class="menu-list">
+                        <li class="menu-item" onclick="toggleDisplayOption('darkMode')">
+                            <div class="menu-item-left">
+                                <div class="menu-icon">🌙</div>
+                                <div class="menu-text">Dark Mode</div>
+                            </div>
+                            <div class="toggle-switch active" id="disp-darkMode"></div>
+                        </li>
+                        <li class="menu-item" onclick="toggleDisplayOption('highContrast')">
+                            <div class="menu-item-left">
+                                <div class="menu-icon">👁️</div>
+                                <div class="menu-text">High Contrast</div>
+                            </div>
+                            <div class="toggle-switch" id="disp-highContrast"></div>
+                        </li>
+                        <li class="menu-item" onclick="toggleDisplayOption('largeText')">
+                            <div class="menu-item-left">
+                                <div class="menu-icon">🔤</div>
+                                <div class="menu-text">Large Text</div>
+                            </div>
+                            <div class="toggle-switch" id="disp-largeText"></div>
+                        </li>
+                        <li class="menu-item" onclick="toggleDisplayOption('animations')">
+                            <div class="menu-item-left">
+                                <div class="menu-icon">✨</div>
+                                <div class="menu-text">Animations</div>
+                            </div>
+                            <div class="toggle-switch active" id="disp-animations"></div>
+                        </li>
+                        <li class="menu-item" onclick="toggleDisplayOption('compactMode')">
+                            <div class="menu-item-left">
+                                <div class="menu-icon">📱</div>
+                                <div class="menu-text">Compact Mode</div>
+                            </div>
+                            <div class="toggle-switch" id="disp-compactMode"></div>
+                        </li>
+                    </ul>
+                </div>
+                <div class="card">
+                    <div class="card-title">🎨 Accent Color</div>
+                    <div style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; padding: 8px 0;">
+                        <button onclick="setAccentColor('gold')" style="width: 100%; aspect-ratio: 1; border-radius: 50%; border: 3px solid var(--accent-gold); background: linear-gradient(135deg, #d4a843, #b8860b); cursor: pointer;"></button>
+                        <button onclick="setAccentColor('blue')" style="width: 100%; aspect-ratio: 1; border-radius: 50%; border: 3px solid transparent; background: linear-gradient(135deg, #3b82f6, #1d4ed8); cursor: pointer;"></button>
+                        <button onclick="setAccentColor('red')" style="width: 100%; aspect-ratio: 1; border-radius: 50%; border: 3px solid transparent; background: linear-gradient(135deg, #ef4444, #b91c1c); cursor: pointer;"></button>
+                        <button onclick="setAccentColor('green')" style="width: 100%; aspect-ratio: 1; border-radius: 50%; border: 3px solid transparent; background: linear-gradient(135deg, #10b981, #047857); cursor: pointer;"></button>
+                        <button onclick="setAccentColor('purple')" style="width: 100%; aspect-ratio: 1; border-radius: 50%; border: 3px solid transparent; background: linear-gradient(135deg, #8b5cf6, #6d28d9); cursor: pointer;"></button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Data & Storage Screen -->
+            <div class="screen" id="screen-data-options">
+                <div class="card">
+                    <div class="card-title">💾 Data & Storage</div>
+                    <ul class="menu-list">
+                        <li class="menu-item" onclick="showStorageInfo()">
+                            <div class="menu-item-left">
+                                <div class="menu-icon">📊</div>
+                                <div class="menu-text">Storage Usage</div>
+                            </div>
+                            <div class="menu-arrow" id="storageUsage">Calculating...</div>
+                        </li>
+                        <li class="menu-item" onclick="exportData()">
+                            <div class="menu-item-left">
+                                <div class="menu-icon">📤</div>
+                                <div class="menu-text">Export All Data</div>
+                            </div>
+                            <div class="menu-arrow">›</div>
+                        </li>
+                        <li class="menu-item" onclick="exportData('encrypted')">
+                            <div class="menu-item-left">
+                                <div class="menu-icon">🔐</div>
+                                <div class="menu-text">Export with Password</div>
+                            </div>
+                            <div class="menu-arrow">›</div>
+                        </li>
+                        <li class="menu-item" onclick="importData()">
+                            <div class="menu-item-left">
+                                <div class="menu-icon">📥</div>
+                                <div class="menu-text">Import Data</div>
+                            </div>
+                            <div class="menu-arrow">›</div>
+                        </li>
+                        <li class="menu-item" onclick="backupNow()">
+                            <div class="menu-item-left">
+                                <div class="menu-icon">💾</div>
+                                <div class="menu-text">Backup Now</div>
+                            </div>
+                            <div class="menu-arrow" id="lastBackup">Never</div>
+                        </li>
+                        <li class="menu-item" onclick="clearHistory()">
+                            <div class="menu-item-left">
+                                <div class="menu-icon">🗑️</div>
+                                <div class="menu-text">Clear Duel History</div>
+                            </div>
+                            <div class="menu-arrow">›</div>
+                        </li>
+                        <li class="menu-item" onclick="clearPhotos()">
+                            <div class="menu-item-left">
+                                <div class="menu-icon">🖼️</div>
+                                <div class="menu-text">Clear All Photos</div>
+                            </div>
+                            <div class="menu-arrow">›</div>
+                        </li>
+                        <li class="menu-item" onclick="clearAllData()">
+                            <div class="menu-item-left">
+                                <div class="menu-icon" style="color: var(--accent-red)">⚠️</div>
+                                <div class="menu-text" style="color: var(--accent-red)">Factory Reset</div>
+                            </div>
+                            <div class="menu-arrow">›</div>
+                        </li>
+                    </ul>
+                </div>
+                <input type="file" id="importFileInput" accept=".json" style="display:none" onchange="handleImportFile(event)">
+            </div>
+
+            <!-- Notification Options Screen -->
+            <div class="screen" id="screen-notification-options">
+                <div class="card">
+                    <div class="card-title">🔔 Notifications</div>
+                    <ul class="menu-list">
+                        <li class="menu-item" onclick="toggleNotifOption('enabled')">
+                            <div class="menu-item-left">
+                                <div class="menu-icon">🔔</div>
+                                <div class="menu-text">Enable Notifications</div>
+                            </div>
+                            <div class="toggle-switch" id="notif-enabled"></div>
+                        </li>
+                        <li class="menu-item" onclick="toggleNotifOption('duelReminders')">
+                            <div class="menu-item-left">
+                                <div class="menu-icon">⏰</div>
+                                <div class="menu-text">Duel Reminders</div>
+                            </div>
+                            <div class="toggle-switch" id="notif-duelReminders"></div>
+                        </li>
+                        <li class="menu-item" onclick="toggleNotifOption('lowLPAlert')">
+                            <div class="menu-item-left">
+                                <div class="menu-icon">❤️</div>
+                                <div class="menu-text">Low LP Alert</div>
+                            </div>
+                            <div class="toggle-switch active" id="notif-lowLPAlert"></div>
+                        </li>
+                        <li class="menu-item" onclick="toggleNotifOption('soundEffects')">
+                            <div class="menu-item-left">
+                                <div class="menu-icon">🔊</div>
+                                <div class="menu-text">Sound Effects</div>
+                            </div>
+                            <div class="toggle-switch active" id="notif-soundEffects"></div>
+                        </li>
+                        <li class="menu-item" onclick="toggleNotifOption('hapticFeedback')">
+                            <div class="menu-item-left">
+                                <div class="menu-icon">📳</div>
+                                <div class="menu-text">Haptic Feedback</div>
+                            </div>
+                            <div class="toggle-switch active" id="notif-hapticFeedback"></div>
+                        </li>
+                    </ul>
+                </div>
+                <div class="card">
+                    <div class="card-title">🎵 Sound Volume</div>
+                    <div style="padding: 16px 0;">
+                        <input type="range" min="0" max="100" value="80" id="volumeSlider" 
+                            style="width: 100%; -webkit-appearance: none; height: 6px; border-radius: 3px; background: var(--bg-elevated); outline: none;"
+                            oninput="updateVolume(this.value)">
+                        <div style="display: flex; justify-content: space-between; margin-top: 8px; font-size: 12px; color: var(--text-muted);">
+                            <span>Off</span>
+                            <span id="volumeValue">80%</span>
+                            <span>Max</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Duel Preferences Screen -->
+            <div class="screen" id="screen-duel-options">
+                <div class="card">
+                    <div class="card-title">⚔️ Duel Preferences</div>
+                    <ul class="menu-list">
+                        <li class="menu-item" onclick="toggleDuelOption('format')">
+                            <div class="menu-item-left">
+                                <div class="menu-icon">📋</div>
+                                <div class="menu-text">Duel Format</div>
+                            </div>
+                            <div class="menu-arrow" id="duel-format">Master Duel</div>
+                        </li>
+                        <li class="menu-item" onclick="toggleDuelOption('startingHand')">
+                            <div class="menu-item-left">
+                                <div class="menu-icon">🃏</div>
+                                <div class="menu-text">Starting Hand Size</div>
+                            </div>
+                            <div class="menu-arrow" id="duel-startingHand">5</div>
+                        </li>
+                        <li class="menu-item" onclick="toggleDuelOption('fieldCenter')">
+                            <div class="menu-item-left">
+                                <div class="menu-icon">🎯</div>
+                                <div class="menu-text">Field Center Card</div>
+                            </div>
+                            <div class="toggle-switch" id="duel-fieldCenter"></div>
+                        </li>
+                        <li class="menu-item" onclick="toggleDuelOption('counters')">
+                            <div class="menu-item-left">
+                                <div class="menu-icon">🔢</div>
+                                <div class="menu-text">Show Counters</div>
+                            </div>
+                            <div class="toggle-switch active" id="duel-counters"></div>
+                        </li>
+                        <li class="menu-item" onclick="toggleDuelOption('coinDice')">
+                            <div class="menu-item-left">
+                                <div class="menu-icon">🎲</div>
+                                <div class="menu-text">Coin & Dice Tools</div>
+                            </div>
+                            <div class="toggle-switch active" id="duel-coinDice"></div>
+                        </li>
+                        <li class="menu-item" onclick="toggleDuelOption('notes')">
+                            <div class="menu-item-left">
+                                <div class="menu-icon">📝</div>
+                                <div class="menu-text">Duel Notes</div>
+                            </div>
+                            <div class="toggle-switch" id="duel-notes"></div>
+                        </li>
+                    </ul>
+                </div>
+                <div class="card">
+                    <div class="card-title">🎴 Default Deck Settings</div>
+                    <div class="input-group">
+                        <label class="input-label">Main Deck Size</label>
+                        <input type="number" class="input-field" id="mainDeckSize" value="40" min="40" max="60" onchange="saveDeckSize('main', this.value)">
+                    </div>
+                    <div class="input-group">
+                        <label class="input-label">Extra Deck Size</label>
+                        <input type="number" class="input-field" id="extraDeckSize" value="15" min="0" max="15" onchange="saveDeckSize('extra', this.value)">
+                    </div>
+                    <div class="input-group">
+                        <label class="input-label">Side Deck Size</label>
+                        <input type="number" class="input-field" id="sideDeckSize" value="15" min="0" max="15" onchange="saveDeckSize('side', this.value)">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Help & About Screen -->
+            <div class="screen" id="screen-help-about">
+                <div class="card">
+                    <div class="card-title">❓ Help & Support</div>
+                    <ul class="menu-list">
+                        <li class="menu-item" onclick="showToast('FAQ - Coming soon')">
+                            <div class="menu-item-left">
+                                <div class="menu-icon">❓</div>
+                                <div class="menu-text">Frequently Asked Questions</div>
+                            </div>
+                            <div class="menu-arrow">›</div>
+                        </li>
+                        <li class="menu-item" onclick="showToast('Tutorial - Coming soon')">
+                            <div class="menu-item-left">
+                                <div class="menu-icon">📖</div>
+                                <div class="menu-text">App Tutorial</div>
+                            </div>
+                            <div class="menu-arrow">›</div>
+                        </li>
+                        <li class="menu-item" onclick="showToast('Rules - Coming soon')">
+                            <div class="menu-item-left">
+                                <div class="menu-icon">📜</div>
+                                <div class="menu-text">Yu-Gi-Oh! Rules Reference</div>
+                            </div>
+                            <div class="menu-arrow">›</div>
+                        </li>
+                        <li class="menu-item" onclick="showToast('Contact - Coming soon')">
+                            <div class="menu-item-left">
+                                <div class="menu-icon">✉️</div>
+                                <div class="menu-text">Contact Support</div>
+                            </div>
+                            <div class="menu-arrow">›</div>
+                        </li>
+                    </ul>
+                </div>
+                <div class="card">
+                    <div class="card-title">ℹ️ About Duelist Companion</div>
+                    <div style="text-align: center; padding: 20px; color: var(--text-secondary); font-size: 14px;">
+                        <div style="width: 60px; height: 60px; background: var(--gradient-gold); border-radius: 16px; display: flex; align-items: center; justify-content: center; font-size: 28px; margin: 0 auto 16px; box-shadow: var(--shadow-gold);">⚡</div>
+                        <p style="margin-bottom: 4px; font-size: 18px; font-weight: 700; color: var(--accent-gold);">Duelist Companion</p>
+                        <p style="margin-bottom: 16px;">Version 1.2.0</p>
+                        <p style="font-size: 13px; line-height: 1.6;">
+                            A comprehensive Yu-Gi-Oh! companion app featuring<br>
+                            Life Point tracking, card photo collection,<br>
+                            PIN security, and customizable duel preferences.
+                        </p>
+                        <p style="font-size: 12px; margin-top: 16px; opacity: 0.7;">
+                            Built for duelists, by duelists.<br>
+                            © 2026 Duelist App. All rights reserved.
+                        </p>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-title">📊 App Statistics</div>
+                    <div class="stats-grid" style="margin-bottom: 0;">
+                        <div class="stat-box">
+                            <div class="stat-value" id="appStatDuels">0</div>
+                            <div class="stat-label">Total Duels</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="stat-value" id="appStatPhotos">0</div>
+                            <div class="stat-label">Photos Taken</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="stat-value" id="appStatDays">0</div>
+                            <div class="stat-label">Days Active</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+
+            <!-- Profile Edit Screen -->
+            <div class="screen" id="screen-profile-edit">
+                <div class="card">
+                    <div class="card-title">✏️ Edit Profile</div>
+                    <div style="text-align: center; padding: 16px 0;">
+                        <div class="profile-avatar" id="editAvatar" style="width: 100px; height: 100px; font-size: 48px; cursor: pointer; margin: 0 auto 8px;" onclick="showAvatarPicker()">👤</div>
+                        <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 16px;">Tap avatar to change</p>
+                    </div>
+                    <div class="input-group">
+                        <label class="input-label">Display Name</label>
+                        <input type="text" class="input-field" id="editDisplayName" placeholder="Your display name">
+                    </div>
+                    <div class="input-group">
+                        <label class="input-label">Bio</label>
+                        <textarea class="input-field" id="editBio" placeholder="Tell other duelists about yourself..." style="min-height: 80px; resize: none;"></textarea>
+                    </div>
+                    <div class="input-group">
+                        <label class="input-label">Favorite Deck</label>
+                        <input type="text" class="input-field" id="editFavoriteDeck" placeholder="e.g., Blue-Eyes, Dark Magician">
+                    </div>
+                    <div class="input-group">
+                        <label class="input-label">Duelist Level</label>
+                        <select class="input-field" id="editDuelistLevel">
+                            <option value="rookie">Rookie Duelist</option>
+                            <option value="intermediate">Intermediate Duelist</option>
+                            <option value="advanced">Advanced Duelist</option>
+                            <option value="expert">Expert Duelist</option>
+                            <option value="king">King of Games</option>
+                        </select>
+                    </div>
+                    <div class="input-group">
+                        <label class="input-label">Location</label>
+                        <input type="text" class="input-field" id="editLocation" placeholder="City, Country">
+                    </div>
+                    <div style="display: flex; gap: 10px; margin-top: 20px;">
+                        <button class="btn btn-secondary" style="flex: 1" onclick="navigateTo('profile')">Cancel</button>
+                        <button class="btn btn-primary" style="flex: 1" onclick="saveProfileEdit()">Save Changes</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Avatar Picker Screen -->
+            <div class="screen" id="screen-avatar-picker">
+                <div class="card">
+                    <div class="card-title">🎭 Choose Avatar</div>
+                    <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; padding: 8px 0;">
+                        <button class="avatar-opt" onclick="selectAvatar('👤')">👤</button>
+                        <button class="avatar-opt" onclick="selectAvatar('⚡')">⚡</button>
+                        <button class="avatar-opt" onclick="selectAvatar('🔥')">🔥</button>
+                        <button class="avatar-opt" onclick="selectAvatar('💀')">💀</button>
+                        <button class="avatar-opt" onclick="selectAvatar('🐉')">🐉</button>
+                        <button class="avatar-opt" onclick="selectAvatar('🧙')">🧙</button>
+                        <button class="avatar-opt" onclick="selectAvatar('🤖')">🤖</button>
+                        <button class="avatar-opt" onclick="selectAvatar('👹')">👹</button>
+                        <button class="avatar-opt" onclick="selectAvatar('🌟')">🌟</button>
+                        <button class="avatar-opt" onclick="selectAvatar('🗡️')">🗡️</button>
+                        <button class="avatar-opt" onclick="selectAvatar('🛡️')">🛡️</button>
+                        <button class="avatar-opt" onclick="selectAvatar('⚔️')">⚔️</button>
+                    </div>
+                    <button class="btn btn-secondary" style="width: 100%; margin-top: 16px;" onclick="navigateTo('profile-edit')">Cancel</button>
+                </div>
+            </div>
+
+            <!-- Duel History Screen -->
+            <div class="screen" id="screen-duel-history">
+                <div class="card">
+                    <div class="card-title">📊 Duel History</div>
+                    <div style="display: flex; gap: 8px; margin-bottom: 16px;">
+                        <button class="btn btn-primary" style="flex: 1" onclick="recordDuelResult('win')">🏆 Record Win</button>
+                        <button class="btn btn-danger" style="flex: 1" onclick="recordDuelResult('loss')">💀 Record Loss</button>
+                    </div>
+                    <div id="duelHistoryList">
+                        <div class="empty-state">
+                            <div class="icon">📊</div>
+                            <p>No completed duels yet. Record your first match!</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-title">📈 Career Statistics</div>
+                    <div class="stats-grid">
+                        <div class="stat-box"><div class="stat-value" id="dhTotal">0</div><div class="stat-label">Total</div></div>
+                        <div class="stat-box"><div class="stat-value" id="dhWins" style="color: var(--accent-green);">0</div><div class="stat-label">Wins</div></div>
+                        <div class="stat-box"><div class="stat-value" id="dhLosses" style="color: var(--accent-red);">0</div><div class="stat-label">Losses</div></div>
+                    </div>
+                    <div style="margin-top: 16px;">
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                            <span style="font-size: 13px; color: var(--text-secondary);">Win Rate</span>
+                            <span style="font-size: 13px; font-weight: 600; color: var(--accent-gold);" id="dhWinRate">0%</span>
+                        </div>
+                        <div style="width: 100%; height: 8px; background: var(--bg-elevated); border-radius: 4px; overflow: hidden;">
+                            <div id="winRateBar" style="width: 0%; height: 100%; background: var(--gradient-gold); border-radius: 4px; transition: width 0.5s;"></div>
+                        </div>
+                    </div>
+                    <div style="margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--border-subtle);">
+                        <div style="display: flex; justify-content: space-between; font-size: 13px; color: var(--text-muted);">
+                            <span>Current Streak</span>
+                            <span id="dhStreak" style="color: var(--accent-gold); font-weight: 600;">0</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; font-size: 13px; color: var(--text-muted); margin-top: 8px;">
+                            <span>Best Streak</span>
+                            <span id="dhBestStreak" style="color: var(--accent-gold); font-weight: 600;">0</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-title">📅 Recent Activity</div>
+                    <div id="duelActivityList" style="max-height: 200px; overflow-y: auto;">
+                        <div class="empty-state" style="padding: 20px;">
+                            <div class="icon">📅</div>
+                            <p>No recent activity</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Deck Manager Screen -->
+            <div class="screen" id="screen-deck-manager">
+                <div class="card">
+                    <div class="card-title">🃏 My Decks</div>
+                    <div style="display: flex; gap: 8px; margin-bottom: 16px;">
+                        <button class="btn btn-primary" style="flex: 1" onclick="showScreen('deck-editor')">➕ New Deck</button>
+                        <button class="btn btn-secondary" style="flex: 1" onclick="importDeck()">📥 Import</button>
+                    </div>
+                    <div id="deckList">
+                        <div class="empty-state">
+                            <div class="icon">🃏</div>
+                            <p>No decks saved yet. Create your first deck!</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-title">📊 Deck Statistics</div>
+                    <div class="stats-grid">
+                        <div class="stat-box"><div class="stat-value" id="dmTotal">0</div><div class="stat-label">Total Decks</div></div>
+                        <div class="stat-box"><div class="stat-value" id="dmMain">0</div><div class="stat-label">Avg Main</div></div>
+                        <div class="stat-box"><div class="stat-value" id="dmExtra">0</div><div class="stat-label">Avg Extra</div></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Deck Editor Screen -->
+            <div class="screen" id="screen-deck-editor">
+                <div class="card">
+                    <div class="card-title">📝 Deck Editor</div>
+                    <div class="input-group">
+                        <label class="input-label">Deck Name *</label>
+                        <input type="text" class="input-field" id="deckName" placeholder="e.g., Blue-Eyes Ultimate">
+                    </div>
+                    <div class="input-group">
+                        <label class="input-label">Archetype / Theme</label>
+                        <input type="text" class="input-field" id="deckArchetype" placeholder="e.g., Blue-Eyes, Dark Magician, Cyber Dragon">
+                    </div>
+                    <div class="input-group">
+                        <label class="input-label">Deck Type</label>
+                        <select class="input-field" id="deckType">
+                            <option value="aggro">⚔️ Aggro / Beatdown</option>
+                            <option value="control">🛡️ Control</option>
+                            <option value="combo">🔗 Combo</option>
+                            <option value="stall">⏱️ Stall / Defense</option>
+                            <option value="otk">💥 OTK (One Turn Kill)</option>
+                            <option value="burn">🔥 Burn</option>
+                            <option value="mill">📉 Mill</option>
+                            <option value="other">❓ Other</option>
+                        </select>
+                    </div>
+                    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px;">
+                        <div class="input-group">
+                            <label class="input-label">Main</label>
+                            <input type="number" class="input-field" id="deckMainCount" value="40" min="40" max="60">
+                        </div>
+                        <div class="input-group">
+                            <label class="input-label">Extra</label>
+                            <input type="number" class="input-field" id="deckExtraCount" value="0" min="0" max="15">
+                        </div>
+                        <div class="input-group">
+                            <label class="input-label">Side</label>
+                            <input type="number" class="input-field" id="deckSideCount" value="0" min="0" max="15">
+                        </div>
+                    </div>
+                    <div class="input-group">
+                        <label class="input-label">Key Cards (comma separated)</label>
+                        <input type="text" class="input-field" id="deckKeyCards" placeholder="e.g., Blue-Eyes White Dragon, Polymerization">
+                    </div>
+                    <div class="input-group">
+                        <label class="input-label">Strategy Notes</label>
+                        <textarea class="input-field" id="deckNotes" placeholder="Opening moves, combos, side deck strategy..." style="min-height: 100px; resize: none;"></textarea>
+                    </div>
+                    <div style="display: flex; gap: 10px; margin-top: 16px;">
+                        <button class="btn btn-secondary" style="flex: 1" onclick="navigateTo('deck-manager')">Cancel</button>
+                        <button class="btn btn-primary" style="flex: 1" onclick="saveDeck()">💾 Save Deck</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Achievements Screen -->
+            <div class="screen" id="screen-achievements">
+                <div class="card">
+                    <div class="card-title">🏆 Achievements</div>
+                    <div id="achievementsList">
+                        <div style="padding: 12px 0; border-bottom: 1px solid var(--border-subtle);">
+                            <div style="display: flex; align-items: center; gap: 12px;">
+                                <div style="width: 48px; height: 48px; border-radius: 12px; background: var(--gradient-gold); display: flex; align-items: center; justify-content: center; font-size: 24px;">🌱</div>
+                                <div style="flex: 1;">
+                                    <div style="font-weight: 600; font-size: 15px;">First Steps</div>
+                                    <div style="font-size: 12px; color: var(--text-muted);">Complete your first duel</div>
+                                </div>
+                                <div id="ach-first-duel" style="font-size: 20px; opacity: 0.3;">🔒</div>
+                            </div>
+                        </div>
+                        <div style="padding: 12px 0; border-bottom: 1px solid var(--border-subtle);">
+                            <div style="display: flex; align-items: center; gap: 12px;">
+                                <div style="width: 48px; height: 48px; border-radius: 12px; background: var(--bg-elevated); display: flex; align-items: center; justify-content: center; font-size: 24px;">📸</div>
+                                <div style="flex: 1;">
+                                    <div style="font-weight: 600; font-size: 15px;">Collector</div>
+                                    <div style="font-size: 12px; color: var(--text-muted);">Save 10 card photos</div>
+                                </div>
+                                <div id="ach-collector" style="font-size: 20px; opacity: 0.3;">🔒</div>
+                            </div>
+                        </div>
+                        <div style="padding: 12px 0; border-bottom: 1px solid var(--border-subtle);">
+                            <div style="display: flex; align-items: center; gap: 12px;">
+                                <div style="width: 48px; height: 48px; border-radius: 12px; background: var(--bg-elevated); display: flex; align-items: center; justify-content: center; font-size: 24px;">❤️</div>
+                                <div style="flex: 1;">
+                                    <div style="font-weight: 600; font-size: 15px;">Survivor</div>
+                                    <div style="font-size: 12px; color: var(--text-muted);">Win with less than 1000 LP</div>
+                                </div>
+                                <div id="ach-survivor" style="font-size: 20px; opacity: 0.3;">🔒</div>
+                            </div>
+                        </div>
+                        <div style="padding: 12px 0; border-bottom: 1px solid var(--border-subtle);">
+                            <div style="display: flex; align-items: center; gap: 12px;">
+                                <div style="width: 48px; height: 48px; border-radius: 12px; background: var(--bg-elevated); display: flex; align-items: center; justify-content: center; font-size: 24px;">🃏</div>
+                                <div style="flex: 1;">
+                                    <div style="font-weight: 600; font-size: 15px;">Deck Builder</div>
+                                    <div style="font-size: 12px; color: var(--text-muted);">Create 3 custom decks</div>
+                                </div>
+                                <div id="ach-deck-builder" style="font-size: 20px; opacity: 0.3;">🔒</div>
+                            </div>
+                        </div>
+                        <div style="padding: 12px 0; border-bottom: 1px solid var(--border-subtle);">
+                            <div style="display: flex; align-items: center; gap: 12px;">
+                                <div style="width: 48px; height: 48px; border-radius: 12px; background: var(--bg-elevated); display: flex; align-items: center; justify-content: center; font-size: 24px;">🔥</div>
+                                <div style="flex: 1;">
+                                    <div style="font-weight: 600; font-size: 15px;">Master Duelist</div>
+                                    <div style="font-size: 12px; color: var(--text-muted);">Win 50 duels</div>
+                                </div>
+                                <div id="ach-master" style="font-size: 20px; opacity: 0.3;">🔒</div>
+                            </div>
+                        </div>
+                        <div style="padding: 12px 0;">
+                            <div style="display: flex; align-items: center; gap: 12px;">
+                                <div style="width: 48px; height: 48px; border-radius: 12px; background: var(--bg-elevated); display: flex; align-items: center; justify-content: center; font-size: 24px;">📅</div>
+                                <div style="flex: 1;">
+                                    <div style="font-weight: 600; font-size: 15px;">Dedicated</div>
+                                    <div style="font-size: 12px; color: var(--text-muted);">Use the app for 7 days</div>
+                                </div>
+                                <div id="ach-dedicated" style="font-size: 20px; opacity: 0.3;">🔒</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-title">📊 Progress</div>
+                    <div style="background: var(--bg-elevated); border-radius: 12px; padding: 16px; text-align: center;">
+                        <div style="font-size: 36px; font-weight: 800; color: var(--accent-gold);" id="achProgress">0/6</div>
+                        <div style="font-size: 12px; color: var(--text-muted); margin-top: 4px;">Achievements Unlocked</div>
+                    </div>
+                </div>
+            </div>
+
+        </main>
+
+        <nav class="bottom-nav" id="bottomNav" style="display:none">
+            <button class="nav-item active" onclick="navigateTo('home')">
+                <span class="nav-icon">❤️</span><span>Health</span>
+            </button>
+            <button class="nav-item" onclick="navigateTo('photos')">
+                <span class="nav-icon">📸</span><span>Photos</span>
+            </button>
+            <button class="nav-item" onclick="navigateTo('profile')">
+                <span class="nav-icon">👤</span><span>Profile</span>
+            </button>
+        </nav>
+    </div>
+
+    <!-- Camera Modal -->
+    <div class="modal-overlay" id="cameraModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title">📸 Capture Card</div>
+                <button class="modal-close" onclick="closeCameraModal()">✕</button>
+            </div>
+            <div class="modal-body">
+                <div class="camera-preview" id="cameraPreview">
+                    <div class="camera-placeholder" id="cameraPlaceholder">
+                        <div class="icon">📷</div>
+                        <p>Tap capture to take a photo</p>
+                    </div>
+                    <video id="cameraVideo" autoplay playsinline style="display:none"></video>
+                    <img id="cameraImage" style="display:none">
+                    <canvas id="cameraCanvas" style="display:none"></canvas>
+                </div>
+                <div class="input-group">
+                    <label class="input-label">Card Name</label>
+                    <input type="text" class="input-field" id="photoName" placeholder="e.g., Blue-Eyes White Dragon">
+                </div>
+                <div class="input-group">
+                    <label class="input-label">Category</label>
+                    <select class="input-field" id="photoCategory">
+                        <option value="monster">Monster</option>
+                        <option value="spell">Spell</option>
+                        <option value="trap">Trap</option>
+                        <option value="deck">Deck</option>
+                        <option value="other">Other</option>
+                    </select>
+                </div>
+                <div style="display: flex; gap: 10px;">
+                    <button class="btn btn-secondary" style="flex: 1" onclick="startCamera()" id="captureBtn">📷 Capture</button>
+                    <button class="btn btn-primary" style="flex: 1" onclick="savePhoto()" id="saveBtn" disabled>💾 Save</button>
+                </div>
+                <input type="file" id="fileInput" accept="image/*" capture="environment" style="display:none" onchange="handleFileSelect(event)">
+            </div>
+        </div>
+    </div>
+
+    <!-- Image Viewer -->
+    <div class="image-viewer" id="imageViewer" onclick="closeImageViewer()">
+        <button class="image-viewer-close" onclick="closeImageViewer()">✕</button>
+        <img id="viewerImage" src="" alt="">
+        <div class="image-viewer-info" onclick="event.stopPropagation()">
+            <h3 id="viewerTitle">Card Name</h3>
+            <p id="viewerCategory">Category</p>
+        </div>
+    </div>
+
+    <!-- Toast -->
+    <div class="toast" id="toast"></div>
+
+    <script>
+        // ==================== STATE MANAGEMENT ====================
+        const AppState = {
+            currentUser: null,
+            health: 8000,
+            healthHistory: [],
+            photos: [],
+            currentFilter: 'all',
+            settings: { sound: true, vibration: true, pinLock: false },
+            stream: null,
+            capturedImage: null,
+            pinBuffer: '',
+            pinSetupBuffer: '',
+            pinConfirmBuffer: '',
+            pinSetupMode: 'create',
+            resetUser: null,
+            resetTargetUser: null
+        };
+
+        // ==================== LOCAL STORAGE ====================
+        const Storage = {
+            save() {
+                const data = {
+                    users: this.getUsers(),
+                    currentUser: AppState.currentUser,
+                    health: AppState.health,
+                    healthHistory: AppState.healthHistory,
+                    photos: AppState.photos,
+                    settings: AppState.settings
+                };
+                localStorage.setItem('duelist_app_v2', JSON.stringify(data));
+            },
+            load() {
+                try {
+                    const data = JSON.parse(localStorage.getItem('duelist_app_v2') || '{}');
+                    if (data.currentUser) AppState.currentUser = data.currentUser;
+                    if (data.health) AppState.health = data.health;
+                    if (data.healthHistory) AppState.healthHistory = data.healthHistory;
+                    if (data.photos) AppState.photos = data.photos;
+                    if (data.settings) AppState.settings = { ...AppState.settings, ...data.settings };
+                } catch(e) { console.error('Load error:', e); }
+            },
+            getUsers() {
+                try {
+                    const data = JSON.parse(localStorage.getItem('duelist_app_v2') || '{}');
+                    return data.users || {};
+                } catch(e) { return {}; }
+            },
+            saveUsers(users) {
+                const data = JSON.parse(localStorage.getItem('duelist_app_v2') || '{}');
+                data.users = users;
+                localStorage.setItem('duelist_app_v2', JSON.stringify(data));
+            }
+        };
+
+        // ==================== SCREEN MANAGEMENT ====================
+        function showScreen(screenName) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            const target = document.getElementById('screen-' + screenName);
+            if (target) target.classList.add('active');
+        }
+
+        function navigateTo(screen) {
+            document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
+            if (event && event.target) event.target.classList.add('active');
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            const target = document.getElementById('screen-' + screen);
+            if (target) target.classList.add('active');
+            const titles = { 'home': 'Duelist', 'photos': 'Collection', 'profile': 'Profile', 'settings': 'Settings', 'options': 'Options', 'calc-options': 'Calculator', 'display-options': 'Display', 'data-options': 'Data', 'notification-options': 'Notifications', 'duel-options': 'Duel', 'help-about': 'Help', 'profile-edit': 'Edit Profile', 'avatar-picker': 'Avatar', 'duel-history': 'History', 'deck-manager': 'Decks', 'deck-editor': 'Edit Deck', 'achievements': 'Achievements' };
+            document.querySelector('.logo-text').textContent = titles[screen] || 'Duelist';
+            if (screen === 'home') { updateHealthDisplay(); renderHistory(); }
+            else if (screen === 'photos') renderPhotos();
+            else if (screen === 'profile') updateProfileDisplay();
+            else if (screen === 'settings') updateSettingsDisplay();
+        }
+
+        // ==================== PIN SYSTEM ====================
+        function enterPin(digit) {
+            if (AppState.pinBuffer.length >= 4) return;
+            AppState.pinBuffer += digit;
+            updatePinDots();
+            if (AppState.pinBuffer.length === 4) setTimeout(() => validatePin(), 200);
+        }
+
+        function deletePinDigit() {
+            AppState.pinBuffer = AppState.pinBuffer.slice(0, -1);
+            updatePinDots();
+            document.getElementById('pinError').textContent = '';
+        }
+
+        function updatePinDots() {
+            const dots = document.querySelectorAll('#pinDots .pin-dot');
+            dots.forEach((dot, i) => {
+                dot.classList.toggle('filled', i < AppState.pinBuffer.length);
+                dot.classList.remove('error');
+            });
+        }
+
+        function validatePin() {
+            const users = Storage.getUsers();
+            const user = users[AppState.currentUser?.username];
+            if (!user || !user.pin) {
+                showPinError('PIN not configured');
+                return;
+            }
+            if (user.pin === btoa(AppState.pinBuffer)) {
+                AppState.pinBuffer = '';
+                updatePinDots();
+                enterApp();
+            } else {
+                showPinError('Incorrect PIN');
+                const dots = document.querySelectorAll('#pinDots .pin-dot');
+                dots.forEach(dot => dot.classList.add('error'));
+                if (AppState.settings.vibration && navigator.vibrate) navigator.vibrate([100, 50, 100]);
+                setTimeout(() => {
+                    AppState.pinBuffer = '';
+                    updatePinDots();
+                }, 600);
+            }
+        }
+
+        function showPinError(msg) {
+            document.getElementById('pinError').textContent = msg;
+        }
+
+        function usePasswordLogin() {
+            AppState.pinBuffer = '';
+            updatePinDots();
+            showScreen('auth');
+        }
+
+        // ==================== PIN SETUP ====================
+        function enterSetupPin(digit) {
+            if (AppState.pinSetupMode === 'create') {
+                if (AppState.pinSetupBuffer.length >= 4) return;
+                AppState.pinSetupBuffer += digit;
+                updateSetupPinDots();
+                if (AppState.pinSetupBuffer.length === 4) {
+                    setTimeout(() => {
+                        AppState.pinSetupMode = 'confirm';
+                        document.getElementById('pinSetupTitle').textContent = 'Confirm PIN';
+                        document.getElementById('pinSetupSubtitle').textContent = 'Enter the same PIN again';
+                        AppState.pinConfirmBuffer = '';
+                        updateSetupPinDots();
+                    }, 200);
+                }
+            } else if (AppState.pinSetupMode === 'confirm') {
+                if (AppState.pinConfirmBuffer.length >= 4) return;
+                AppState.pinConfirmBuffer += digit;
+                updateSetupPinDots();
+                if (AppState.pinConfirmBuffer.length === 4) setTimeout(() => confirmPinSetup(), 200);
+            } else if (AppState.pinSetupMode === 'change') {
+                if (AppState.pinSetupBuffer.length >= 4) return;
+                AppState.pinSetupBuffer += digit;
+                updateSetupPinDots();
+                if (AppState.pinSetupBuffer.length === 4) setTimeout(() => validateOldPinForChange(), 200);
+            } else if (AppState.pinSetupMode === 'newpin') {
+                if (AppState.pinSetupBuffer.length >= 4) return;
+                AppState.pinSetupBuffer += digit;
+                updateSetupPinDots();
+                if (AppState.pinSetupBuffer.length === 4) {
+                    setTimeout(() => {
+                        AppState.pinSetupMode = 'confirmnew';
+                        document.getElementById('pinSetupTitle').textContent = 'Confirm New PIN';
+                        document.getElementById('pinSetupSubtitle').textContent = 'Enter the same PIN again';
+                        AppState.pinConfirmBuffer = '';
+                        updateSetupPinDots();
+                    }, 200);
+                }
+            } else if (AppState.pinSetupMode === 'confirmnew') {
+                if (AppState.pinConfirmBuffer.length >= 4) return;
+                AppState.pinConfirmBuffer += digit;
+                updateSetupPinDots();
+                if (AppState.pinConfirmBuffer.length === 4) setTimeout(() => confirmNewPinChange(), 200);
+            }
+        }
+
+        function deleteSetupPinDigit() {
+            if (AppState.pinSetupMode === 'create' || AppState.pinSetupMode === 'change' || AppState.pinSetupMode === 'newpin') {
+                AppState.pinSetupBuffer = AppState.pinSetupBuffer.slice(0, -1);
+            } else if (AppState.pinSetupMode === 'confirm' || AppState.pinSetupMode === 'confirmnew') {
+                AppState.pinConfirmBuffer = AppState.pinConfirmBuffer.slice(0, -1);
+            }
+            updateSetupPinDots();
+            document.getElementById('pinSetupError').textContent = '';
+        }
+
+        function updateSetupPinDots() {
+            const dots = document.querySelectorAll('#pinSetupDots .pin-dot');
+            let buffer = (AppState.pinSetupMode === 'confirm' || AppState.pinSetupMode === 'confirmnew') ? AppState.pinConfirmBuffer : AppState.pinSetupBuffer;
+            dots.forEach((dot, i) => {
+                dot.classList.toggle('filled', i < buffer.length);
+                dot.classList.remove('error');
+            });
+        }
+
+        function confirmPinSetup() {
+            if (AppState.pinSetupBuffer !== AppState.pinConfirmBuffer) {
+                document.getElementById('pinSetupError').textContent = 'PINs do not match. Try again.';
+                const dots = document.querySelectorAll('#pinSetupDots .pin-dot');
+                dots.forEach(dot => dot.classList.add('error'));
+                setTimeout(() => {
+                    AppState.pinSetupMode = 'create';
+                    AppState.pinSetupBuffer = '';
+                    AppState.pinConfirmBuffer = '';
+                    document.getElementById('pinSetupTitle').textContent = 'Create PIN';
+                    document.getElementById('pinSetupSubtitle').textContent = 'Choose a 4-digit PIN for quick access';
+                    updateSetupPinDots();
+                }, 800);
+                return;
+            }
+            const users = Storage.getUsers();
+            if (AppState.currentUser && users[AppState.currentUser.username]) {
+                users[AppState.currentUser.username].pin = btoa(AppState.pinSetupBuffer);
+                Storage.saveUsers(users);
+            }
+            AppState.settings.pinLock = true;
+            Storage.save();
+            showToast('PIN set successfully!');
+            AppState.pinSetupBuffer = '';
+            AppState.pinConfirmBuffer = '';
+            AppState.pinSetupMode = 'create';
+            enterApp();
+        }
+
+        function validateOldPinForChange() {
+            const users = Storage.getUsers();
+            const user = users[AppState.currentUser?.username];
+            if (!user || user.pin !== btoa(AppState.pinSetupBuffer)) {
+                document.getElementById('pinSetupError').textContent = 'Incorrect current PIN';
+                const dots = document.querySelectorAll('#pinSetupDots .pin-dot');
+                dots.forEach(dot => dot.classList.add('error'));
+                setTimeout(() => { AppState.pinSetupBuffer = ''; updateSetupPinDots(); }, 600);
+                return;
+            }
+            AppState.pinSetupBuffer = '';
+            AppState.pinSetupMode = 'newpin';
+            document.getElementById('pinSetupTitle').textContent = 'New PIN';
+            document.getElementById('pinSetupSubtitle').textContent = 'Choose your new 4-digit PIN';
+            updateSetupPinDots();
+        }
+
+        function confirmNewPinChange() {
+            if (AppState.pinSetupBuffer !== AppState.pinConfirmBuffer) {
+                document.getElementById('pinSetupError').textContent = 'PINs do not match. Try again.';
+                const dots = document.querySelectorAll('#pinSetupDots .pin-dot');
+                dots.forEach(dot => dot.classList.add('error'));
+                setTimeout(() => {
+                    AppState.pinSetupMode = 'newpin';
+                    AppState.pinSetupBuffer = '';
+                    AppState.pinConfirmBuffer = '';
+                    document.getElementById('pinSetupTitle').textContent = 'New PIN';
+                    document.getElementById('pinSetupSubtitle').textContent = 'Choose your new 4-digit PIN';
+                    updateSetupPinDots();
+                }, 800);
+                return;
+            }
+            const users = Storage.getUsers();
+            if (AppState.currentUser && users[AppState.currentUser.username]) {
+                users[AppState.currentUser.username].pin = btoa(AppState.pinSetupBuffer);
+                Storage.saveUsers(users);
+            }
+            showToast('PIN changed successfully!');
+            AppState.pinSetupBuffer = '';
+            AppState.pinConfirmBuffer = '';
+            AppState.pinSetupMode = 'create';
+            showScreen('profile');
+            updateProfileDisplay();
+        }
+
+        function skipPinSetup() {
+            AppState.pinSetupBuffer = '';
+            AppState.pinConfirmBuffer = '';
+            AppState.pinSetupMode = 'create';
+            enterApp();
+        }
+
+        function changePin() {
+            const users = Storage.getUsers();
+            const user = users[AppState.currentUser?.username];
+            if (!user || !user.pin) {
+                // No PIN set, go to setup
+                AppState.pinSetupMode = 'create';
+                document.getElementById('pinSetupTitle').textContent = 'Create PIN';
+                document.getElementById('pinSetupSubtitle').textContent = 'Choose a 4-digit PIN for quick access';
+                showScreen('pin-setup');
+                return;
+            }
+            AppState.pinSetupBuffer = '';
+            AppState.pinConfirmBuffer = '';
+            AppState.pinSetupMode = 'change';
+            document.getElementById('pinSetupTitle').textContent = 'Current PIN';
+            document.getElementById('pinSetupSubtitle').textContent = 'Enter your current PIN to continue';
+            showScreen('pin-setup');
+        }
+
+        function togglePinLock() {
+            const users = Storage.getUsers();
+            const user = users[AppState.currentUser?.username];
+
+            if (AppState.settings.pinLock) {
+                // Turning off
+                AppState.settings.pinLock = false;
+                Storage.save();
+                updateSettingsDisplay();
+                showToast('PIN Lock disabled');
+            } else {
+                // Turning on - need to set PIN first
+                if (!user || !user.pin) {
+                    AppState.pinSetupMode = 'create';
+                    document.getElementById('pinSetupTitle').textContent = 'Create PIN';
+                    document.getElementById('pinSetupSubtitle').textContent = 'Choose a 4-digit PIN for quick access';
+                    showScreen('pin-setup');
+                } else {
+                    AppState.settings.pinLock = true;
+                    Storage.save();
+                    updateSettingsDisplay();
+                    showToast('PIN Lock enabled');
+                }
+            }
+        }
+
+        // ==================== AUTHENTICATION ====================
+        function toggleAuthMode() {
+            const loginForm = document.getElementById('loginForm');
+            const registerForm = document.getElementById('registerForm');
+            if (loginForm.style.display === 'none') {
+                loginForm.style.display = 'block';
+                registerForm.style.display = 'none';
+            } else {
+                loginForm.style.display = 'none';
+                registerForm.style.display = 'block';
+            }
+        }
+
+        function showAuthMessage(type, msg, isReg) {
+            const el = document.getElementById(isReg ? 'regMessage' : 'authMessage');
+            el.className = 'auth-message ' + type;
+            el.textContent = msg;
+        }
+
+        function handleRegister() {
+            const username = document.getElementById('regUsername').value.trim();
+            const email = document.getElementById('regEmail').value.trim();
+            const password = document.getElementById('regPassword').value;
+            const secQ1 = document.getElementById('secQ1').value;
+            const secA1 = document.getElementById('secA1').value.trim();
+            const secQ2 = document.getElementById('secQ2').value;
+            const secA2 = document.getElementById('secA2').value.trim();
+
+            if (!username || !email || !password) {
+                showAuthMessage('error', 'Please fill in all fields', true);
+                return;
+            }
+            if (password.length < 6) {
+                showAuthMessage('error', 'Password must be at least 6 characters', true);
+                return;
+            }
+            if (!secQ1 || !secA1 || !secQ2 || !secA2) {
+                showAuthMessage('error', 'Please answer both security questions', true);
+                return;
+            }
+
+            const users = Storage.getUsers();
+            if (users[username]) {
+                showAuthMessage('error', 'Username already exists', true);
+                return;
+            }
+
+            users[username] = {
+                username,
+                email,
+                password: btoa(password),
+                pin: null,
+                securityQuestions: [
+                    { question: secQ1, answer: btoa(secA1.toLowerCase()) },
+                    { question: secQ2, answer: btoa(secA2.toLowerCase()) }
+                ],
+                createdAt: new Date().toISOString()
+            };
+            Storage.saveUsers(users);
+
+            showAuthMessage('success', 'Account created! Please sign in.', true);
+            setTimeout(toggleAuthMode, 1500);
+        }
+
+        function handleLogin() {
+            const username = document.getElementById('loginUsername').value.trim();
+            const password = document.getElementById('loginPassword').value;
+
+            if (!username || !password) {
+                showAuthMessage('error', 'Please fill in all fields');
+                return;
+            }
+
+            const users = Storage.getUsers();
+            const user = users[username];
+
+            if (!user || user.password !== btoa(password)) {
+                showAuthMessage('error', 'Invalid username or password');
+                return;
+            }
+
+            AppState.currentUser = { username: user.username, email: user.email };
+            Storage.save();
+            showAuthMessage('success', 'Welcome back, ' + username + '!');
+
+            setTimeout(() => {
+                // Check if PIN is set and PIN lock is enabled
+                if (user.pin && AppState.settings.pinLock) {
+                    showScreen('pin');
+                    document.getElementById('pinTitle').textContent = 'Enter PIN';
+                    document.getElementById('pinSubtitle').textContent = 'Welcome back, ' + username;
+                } else {
+                    // Offer PIN setup
+                    showScreen('pin-setup');
+                }
+            }, 800);
+        }
+
+        function handleLogout() {
+            AppState.currentUser = null;
+            AppState.health = 8000;
+            AppState.healthHistory = [];
+            AppState.pinBuffer = '';
+            Storage.save();
+            location.reload();
+        }
+
+        function enterApp() {
+            document.getElementById('bottomNav').style.display = 'flex';
+            document.getElementById('profileBtn').style.display = 'flex';
+            navigateTo('home');
+            updateProfileDisplay();
+        }
+
+        // ==================== PASSWORD RESET ====================
+        function showForgotPassword() {
+            AppState.resetTargetUser = null;
+            document.getElementById('resetUsername').value = '';
+            document.getElementById('resetStep1').style.display = 'block';
+            document.getElementById('resetStep2').style.display = 'none';
+            document.getElementById('resetStep3').style.display = 'none';
+            document.getElementById('resetMessage').className = 'auth-message';
+            document.getElementById('resetMessage').textContent = '';
+            showScreen('reset');
+        }
+
+        function showPasswordResetFromPin() {
+            showForgotPassword();
+        }
+
+        function backToAuth() {
+            showScreen('auth');
+        }
+
+        function verifyUsername() {
+            const username = document.getElementById('resetUsername').value.trim();
+            if (!username) {
+                document.getElementById('resetMessage').className = 'auth-message error';
+                document.getElementById('resetMessage').textContent = 'Please enter your username';
+                return;
+            }
+
+            const users = Storage.getUsers();
+            const user = users[username];
+            if (!user) {
+                document.getElementById('resetMessage').className = 'auth-message error';
+                document.getElementById('resetMessage').textContent = 'Username not found';
+                return;
+            }
+
+            if (!user.securityQuestions || user.securityQuestions.length < 2) {
+                document.getElementById('resetMessage').className = 'auth-message error';
+                document.getElementById('resetMessage').textContent = 'No security questions set for this account';
+                return;
+            }
+
+            AppState.resetTargetUser = user;
+
+            // Build security question form
+            const questionsHtml = `
+                <div class="security-q">
+                    <div class="security-q-label">${getQuestionText(user.securityQuestions[0].question)}</div>
+                    <input type="text" class="input-field" id="resetA1" placeholder="Your answer">
+                </div>
+                <div class="security-q">
+                    <div class="security-q-label">${getQuestionText(user.securityQuestions[1].question)}</div>
+                    <input type="text" class="input-field" id="resetA2" placeholder="Your answer">
+                </div>
+            `;
+            document.getElementById('resetQuestions').innerHTML = questionsHtml;
+
+            document.getElementById('resetStep1').style.display = 'none';
+            document.getElementById('resetStep2').style.display = 'block';
+            document.getElementById('resetSubtitle').textContent = 'Answer your security questions';
+        }
+
+        function getQuestionText(value) {
+            const questions = {
+                'pet': "What was your first pet's name?",
+                'city': "What city were you born in?",
+                'school': "What was your elementary school?",
+                'mother': "What is your mother's maiden name?",
+                'game': "What was your first Yu-Gi-Oh! card?",
+                'color': "What is your favorite color?",
+                'food': "What is your favorite food?",
+                'hero': "Who is your favorite duelist?",
+                'deck': "What is your favorite deck type?",
+                'monster': "What is your favorite monster?"
+            };
+            return questions[value] || value;
+        }
+
+        function verifySecurityAnswers() {
+            const answer1 = document.getElementById('resetA1').value.trim().toLowerCase();
+            const answer2 = document.getElementById('resetA2').value.trim().toLowerCase();
+
+            if (!answer1 || !answer2) {
+                document.getElementById('resetMessage2').className = 'auth-message error';
+                document.getElementById('resetMessage2').textContent = 'Please answer both questions';
+                return;
+            }
+
+            const user = AppState.resetTargetUser;
+            if (user.securityQuestions[0].answer !== btoa(answer1) || 
+                user.securityQuestions[1].answer !== btoa(answer2)) {
+                document.getElementById('resetMessage2').className = 'auth-message error';
+                document.getElementById('resetMessage2').textContent = 'One or more answers are incorrect';
+                return;
+            }
+
+            document.getElementById('resetStep2').style.display = 'none';
+            document.getElementById('resetStep3').style.display = 'block';
+            document.getElementById('resetSubtitle').textContent = 'Create a new password';
+        }
+
+        function resetPassword() {
+            const newPass = document.getElementById('newPassword').value;
+            const confirmPass = document.getElementById('confirmPassword').value;
+
+            if (!newPass || !confirmPass) {
+                document.getElementById('resetMessage3').className = 'auth-message error';
+                document.getElementById('resetMessage3').textContent = 'Please fill in both fields';
+                return;
+            }
+            if (newPass.length < 6) {
+                document.getElementById('resetMessage3').className = 'auth-message error';
+                document.getElementById('resetMessage3').textContent = 'Password must be at least 6 characters';
+                return;
+            }
+            if (newPass !== confirmPass) {
+                document.getElementById('resetMessage3').className = 'auth-message error';
+                document.getElementById('resetMessage3').textContent = 'Passwords do not match';
+                return;
+            }
+
+            const users = Storage.getUsers();
+            if (AppState.resetTargetUser && users[AppState.resetTargetUser.username]) {
+                users[AppState.resetTargetUser.username].password = btoa(newPass);
+                Storage.saveUsers(users);
+            }
+
+            document.getElementById('resetMessage3').className = 'auth-message success';
+            document.getElementById('resetMessage3').textContent = 'Password reset successful!';
+
+            setTimeout(() => {
+                AppState.resetTargetUser = null;
+                showScreen('auth');
+                document.getElementById('loginUsername').value = '';
+                document.getElementById('loginPassword').value = '';
+            }, 1500);
+        }
+
+        // ==================== HEALTH CALCULATOR ====================
+        function updateHealthDisplay() {
+            document.getElementById('healthValue').textContent = AppState.health;
+        }
+
+        function modifyHealth(amount) {
+            const oldHealth = AppState.health;
+            AppState.health = Math.max(0, AppState.health + amount);
+            AppState.healthHistory.unshift({
+                amount: amount,
+                oldHealth: oldHealth,
+                newHealth: AppState.health,
+                time: new Date().toLocaleTimeString()
+            });
+            if (AppState.healthHistory.length > 50) AppState.healthHistory = AppState.healthHistory.slice(0, 50);
+            Storage.save();
+            updateHealthDisplay();
+            renderHistory();
+            if (AppState.settings.vibration && navigator.vibrate) navigator.vibrate(amount < 0 ? [50, 30, 50] : [30]);
+            showToast(amount < 0 ? `-${Math.abs(amount)} damage!` : `+${amount} LP recovered!`);
+        }
+
+        function showCustomDamage() {
+            const amount = prompt('Enter damage amount:', '500');
+            if (amount && !isNaN(amount)) modifyHealth(-Math.abs(parseInt(amount)));
+        }
+
+        function showCustomHeal() {
+            const amount = prompt('Enter heal amount:', '500');
+            if (amount && !isNaN(amount)) modifyHealth(Math.abs(parseInt(amount)));
+        }
+
+        function setHealth(value) {
+            const oldHealth = AppState.health;
+            AppState.health = value;
+            AppState.healthHistory.unshift({ amount: value - oldHealth, oldHealth: oldHealth, newHealth: value, time: new Date().toLocaleTimeString(), isReset: true });
+            Storage.save();
+            updateHealthDisplay();
+            renderHistory();
+            showToast('Life Points set to ' + value);
+        }
+
+        function resetHealth() {
+            if (confirm('Reset Life Points to 8000?')) setHealth(8000);
+        }
+
+        function undoLast() {
+            if (AppState.healthHistory.length === 0) { showToast('Nothing to undo'); return; }
+            const last = AppState.healthHistory.shift();
+            AppState.health = last.oldHealth;
+            Storage.save();
+            updateHealthDisplay();
+            renderHistory();
+            showToast('Undo successful');
+        }
+
+        function renderHistory() {
+            const container = document.getElementById('historyList');
+            if (AppState.healthHistory.length === 0) {
+                container.innerHTML = '<div class="empty-state"><div class="icon">📋</div><p>No changes yet. Start a duel!</p></div>';
+                return;
+            }
+            container.innerHTML = AppState.healthHistory.slice(0, 20).map(h => `
+                <div class="history-item">
+                    <div><span class="${h.amount < 0 ? 'history-damage' : 'history-heal'}">${h.amount > 0 ? '+' : ''}${h.amount} LP</span>${h.isReset ? '<span style="color: var(--accent-blue); margin-left: 8px;">[Reset]</span>' : ''}</div>
+                    <div class="history-time">${h.time}</div>
+                </div>
+            `).join('');
+        }
+
+        // ==================== PHOTO MANAGEMENT ====================
+        function openCameraModal() {
+            document.getElementById('cameraModal').classList.add('active');
+            document.getElementById('photoName').value = '';
+            document.getElementById('photoCategory').value = 'monster';
+            document.getElementById('cameraImage').style.display = 'none';
+            document.getElementById('cameraVideo').style.display = 'none';
+            document.getElementById('cameraPlaceholder').style.display = 'flex';
+            document.getElementById('saveBtn').disabled = true;
+            AppState.capturedImage = null;
+        }
+
+        function closeCameraModal() {
+            stopCamera();
+            document.getElementById('cameraModal').classList.remove('active');
+        }
+
+        function startCamera() {
+            document.getElementById('fileInput').click();
+        }
+
+        function handleFileSelect(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                AppState.capturedImage = e.target.result;
+                document.getElementById('cameraImage').src = e.target.result;
+                document.getElementById('cameraImage').style.display = 'block';
+                document.getElementById('cameraPlaceholder').style.display = 'none';
+                document.getElementById('saveBtn').disabled = false;
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function stopCamera() {
+            if (AppState.stream) {
+                AppState.stream.getTracks().forEach(track => track.stop());
+                AppState.stream = null;
+            }
+        }
+
+        function savePhoto() {
+            if (!AppState.capturedImage) return;
+            const name = document.getElementById('photoName').value.trim() || 'Untitled Card';
+            const category = document.getElementById('photoCategory').value;
+            const photo = { id: Date.now(), name: name, category: category, image: AppState.capturedImage, date: new Date().toISOString() };
+            AppState.photos.unshift(photo);
+            Storage.save();
+            closeCameraModal();
+            renderPhotos();
+            showToast('Photo saved!');
+        }
+
+        function filterPhotos(category) {
+            AppState.currentFilter = category;
+            document.querySelectorAll('.cat-tab').forEach(tab => tab.classList.remove('active'));
+            if (event && event.target) event.target.classList.add('active');
+            renderPhotos();
+        }
+
+        function renderPhotos() {
+            const grid = document.getElementById('photoGrid');
+            const filtered = AppState.currentFilter === 'all' ? AppState.photos : AppState.photos.filter(p => p.category === AppState.currentFilter);
+            let html = '<div class="photo-item photo-add" onclick="openCameraModal()">📷<span>Add Photo</span></div>';
+            filtered.forEach(photo => {
+                html += `<div class="photo-item" onclick="viewImage(${photo.id})"><button class="delete-btn" onclick="deletePhoto(event, ${photo.id})">✕</button><img src="${photo.image}" alt="${photo.name}"><div class="photo-tag">${photo.name}</div></div>`;
+            });
+            grid.innerHTML = html;
+        }
+
+        function viewImage(id) {
+            const photo = AppState.photos.find(p => p.id === id);
+            if (!photo) return;
+            document.getElementById('viewerImage').src = photo.image;
+            document.getElementById('viewerTitle').textContent = photo.name;
+            document.getElementById('viewerCategory').textContent = photo.category.charAt(0).toUpperCase() + photo.category.slice(1);
+            document.getElementById('imageViewer').classList.add('active');
+        }
+
+        function closeImageViewer() {
+            document.getElementById('imageViewer').classList.remove('active');
+        }
+
+        function deletePhoto(event, id) {
+            event.stopPropagation();
+            if (!confirm('Delete this photo?')) return;
+            AppState.photos = AppState.photos.filter(p => p.id !== id);
+            Storage.save();
+            renderPhotos();
+            showToast('Photo deleted');
+        }
+
+        // ==================== PROFILE & SETTINGS ====================
+        function updateProfileDisplay() {
+            if (!AppState.currentUser) return;
+            document.getElementById('profileName').textContent = AppState.currentUser.username;
+            document.getElementById('profileEmail').textContent = AppState.currentUser.email;
+            document.getElementById('profileAvatar').textContent = AppState.currentUser.username.charAt(0).toUpperCase();
+            document.getElementById('statDuels').textContent = AppState.healthHistory.filter(h => h.isReset).length || '0';
+            document.getElementById('statPhotos').textContent = AppState.photos.length;
+            document.getElementById('statCards').textContent = AppState.photos.length;
+        }
+
+        function updateSettingsDisplay() {
+            document.getElementById('soundToggle').classList.toggle('active', AppState.settings.sound);
+            document.getElementById('vibrationToggle').classList.toggle('active', AppState.settings.vibration);
+            document.getElementById('pinLockToggle').classList.toggle('active', AppState.settings.pinLock);
+        }
+
+        function toggleSetting(setting) {
+            AppState.settings[setting] = !AppState.settings[setting];
+            Storage.save();
+            updateSettingsDisplay();
+            showToast(setting.charAt(0).toUpperCase() + setting.slice(1) + ' ' + (AppState.settings[setting] ? 'ON' : 'OFF'));
+        }
+
+        function clearAllData() {
+            if (!confirm('WARNING: This will delete ALL data including photos, history, and accounts. Continue?')) return;
+            if (!confirm('Are you absolutely sure? All data will be permanently lost.')) return;
+            localStorage.removeItem('duelist_app_v2');
+            location.reload();
+        }
+
+        // ==================== UTILITIES ====================
+        function showToast(msg) {
+            const toast = document.getElementById('toast');
+            toast.textContent = msg;
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 2500);
+        }
+
+
+        // ==================== PROFILE FEATURES ====================
+
+        function loadProfileData() {
+            const users = Storage.getUsers();
+            const user = users[AppState.currentUser?.username];
+            if (!user) return;
+            document.getElementById('editDisplayName').value = user.profile?.displayName || '';
+            document.getElementById('editBio').value = user.profile?.bio || '';
+            document.getElementById('editFavoriteDeck').value = user.profile?.favoriteDeck || '';
+            document.getElementById('editDuelistLevel').value = user.profile?.duelistLevel || 'rookie';
+            document.getElementById('editLocation').value = user.profile?.location || '';
+            document.getElementById('editAvatar').textContent = user.profile?.avatar || '👤';
+        }
+
+        function saveProfileEdit() {
+            const users = Storage.getUsers();
+            const username = AppState.currentUser?.username;
+            if (!username || !users[username]) return;
+            if (!users[username].profile) users[username].profile = {};
+            users[username].profile.displayName = document.getElementById('editDisplayName').value.trim();
+            users[username].profile.bio = document.getElementById('editBio').value.trim();
+            users[username].profile.favoriteDeck = document.getElementById('editFavoriteDeck').value.trim();
+            users[username].profile.duelistLevel = document.getElementById('editDuelistLevel').value;
+            users[username].profile.location = document.getElementById('editLocation').value.trim();
+            Storage.saveUsers(users);
+            showToast('Profile updated!');
+            navigateTo('profile');
+            updateProfileDisplay();
+        }
+
+        function showAvatarPicker() {
+            navigateTo('avatar-picker');
+        }
+
+        function selectAvatar(avatar) {
+            const users = Storage.getUsers();
+            const username = AppState.currentUser?.username;
+            if (!username || !users[username]) return;
+            if (!users[username].profile) users[username].profile = {};
+            users[username].profile.avatar = avatar;
+            Storage.saveUsers(users);
+            document.getElementById('editAvatar').textContent = avatar;
+            showToast('Avatar updated!');
+            navigateTo('profile-edit');
+        }
+
+        function updateProfileDisplay() {
+            if (!AppState.currentUser) return;
+            const users = Storage.getUsers();
+            const user = users[AppState.currentUser.username];
+            const profile = user?.profile || {};
+            const displayName = profile.displayName || AppState.currentUser.username;
+            const avatar = profile.avatar || '👤';
+            const level = profile.duelistLevel || 'rookie';
+            const levelLabels = { rookie: '🌱 Rookie', intermediate: '⚔️ Intermediate', advanced: '🏆 Advanced', expert: '👑 Expert', king: '🌟 King of Games' };
+
+            document.getElementById('profileName').textContent = displayName;
+            document.getElementById('profileEmail').textContent = AppState.currentUser.email;
+            document.getElementById('profileAvatar').textContent = avatar;
+
+            const existingBadge = document.querySelector('.level-badge');
+            if (existingBadge) existingBadge.remove();
+            const header = document.querySelector('.profile-header');
+            const badge = document.createElement('div');
+            badge.className = 'level-badge level-' + level;
+            badge.textContent = levelLabels[level];
+            header.appendChild(badge);
+
+            const duels = user.duelRecords?.length || 0;
+            document.getElementById('statDuels').textContent = duels;
+            document.getElementById('statPhotos').textContent = AppState.photos.length;
+            document.getElementById('statCards').textContent = user.decks?.length || 0;
+
+            document.getElementById('dhTotal').textContent = duels;
+            const wins = user.duelRecords?.filter(d => d.result === 'win').length || 0;
+            document.getElementById('dhWins').textContent = wins;
+            document.getElementById('dhLosses').textContent = duels - wins;
+            document.getElementById('dhWinRate').textContent = duels > 0 ? Math.round((wins / duels) * 100) + '%' : '0%';
+
+            checkAchievements();
+        }
+
+        // ==================== DUEL HISTORY & RECORDING ====================
+        function recordDuelResult(result) {
+            const users = Storage.getUsers();
+            const username = AppState.currentUser?.username;
+            if (!username || !users[username]) return;
+            if (!users[username].duelRecords) users[username].duelRecords = [];
+
+            const record = {
+                result: result,
+                lpRemaining: AppState.health,
+                date: new Date().toISOString(),
+                time: new Date().toLocaleTimeString(),
+                timestamp: Date.now()
+            };
+            users[username].duelRecords.unshift(record);
+            Storage.saveUsers(users);
+
+            showToast(result === 'win' ? '🏆 Victory recorded!' : '💀 Defeat recorded. Keep dueling!');
+            loadDuelHistory();
+            updateProfileDisplay();
+        }
+
+        function loadDuelHistory() {
+            const users = Storage.getUsers();
+            const user = users[AppState.currentUser?.username];
+            const duels = user?.duelRecords || [];
+            const container = document.getElementById('duelHistoryList');
+            const activityContainer = document.getElementById('duelActivityList');
+
+            if (duels.length === 0) {
+                container.innerHTML = '<div class="empty-state"><div class="icon">📊</div><p>No completed duels yet. Record your first match!</p></div>';
+                activityContainer.innerHTML = '<div class="empty-state" style="padding: 20px;"><div class="icon">📅</div><p>No recent activity</p></div>';
+                return;
+            }
+
+            container.innerHTML = duels.map((duel, idx) => `
+                <div style="padding: 12px 0; border-bottom: 1px solid var(--border-subtle);">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <div>
+                            <div style="font-weight: 600; font-size: 15px;">Duel #${duels.length - idx}</div>
+                            <div style="font-size: 12px; color: var(--text-muted);">${duel.time || new Date(duel.date).toLocaleTimeString()}</div>
+                        </div>
+                        <div style="text-align: right;">
+                            <div style="font-size: 18px; font-weight: 700; color: ${duel.result === 'win' ? 'var(--accent-green)' : 'var(--accent-red)'}">${duel.result === 'win' ? '🏆 WIN' : '💀 LOSS'}</div>
+                            <div style="font-size: 12px; color: var(--text-muted);">${duel.lpRemaining || 'N/A'} LP</div>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+
+            // Activity list (last 5)
+            activityContainer.innerHTML = duels.slice(0, 5).map((duel, idx) => `
+                <div style="padding: 10px 0; border-bottom: 1px solid var(--border-subtle); display: flex; justify-content: space-between; align-items: center;">
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <div style="font-size: 20px;">${duel.result === 'win' ? '🏆' : '💀'}</div>
+                        <div>
+                            <div style="font-size: 14px; font-weight: 500;">${duel.result === 'win' ? 'Victory' : 'Defeat'}</div>
+                            <div style="font-size: 11px; color: var(--text-muted);">${new Date(duel.date).toLocaleDateString()}</div>
+                        </div>
+                    </div>
+                    <div style="font-size: 13px; color: var(--text-muted);">${duel.lpRemaining || '-'} LP</div>
+                </div>
+            `).join('');
+
+            // Update statistics
+            const wins = duels.filter(d => d.result === 'win').length;
+            const losses = duels.length - wins;
+            const winRate = duels.length > 0 ? Math.round((wins / duels.length) * 100) : 0;
+
+            document.getElementById('dhTotal').textContent = duels.length;
+            document.getElementById('dhWins').textContent = wins;
+            document.getElementById('dhLosses').textContent = losses;
+            document.getElementById('dhWinRate').textContent = winRate + '%';
+            document.getElementById('winRateBar').style.width = winRate + '%';
+
+            // Calculate streaks
+            let currentStreak = 0;
+            let bestStreak = 0;
+            let tempStreak = 0;
+            for (const duel of duels) {
+                if (duel.result === 'win') {
+                    tempStreak++;
+                    if (tempStreak > bestStreak) bestStreak = tempStreak;
+                } else {
+                    tempStreak = 0;
+                }
+            }
+            // Current streak is from the beginning
+            for (const duel of duels) {
+                if (duel.result === 'win') currentStreak++;
+                else break;
+            }
+            document.getElementById('dhStreak').textContent = currentStreak + (currentStreak === 1 ? ' win' : ' wins');
+            document.getElementById('dhBestStreak').textContent = bestStreak + (bestStreak === 1 ? ' win' : ' wins');
+        }
+
+        // ==================== DECK MANAGER ====================
+        function loadDecks() {
+            const users = Storage.getUsers();
+            const user = users[AppState.currentUser?.username];
+            const decks = user?.decks || [];
+            const container = document.getElementById('deckList');
+
+            // Update stats
+            document.getElementById('dmTotal').textContent = decks.length;
+            const avgMain = decks.length > 0 ? Math.round(decks.reduce((a, d) => a + (d.mainCount || 40), 0) / decks.length) : 0;
+            const avgExtra = decks.length > 0 ? Math.round(decks.reduce((a, d) => a + (d.extraCount || 0), 0) / decks.length) : 0;
+            document.getElementById('dmMain').textContent = avgMain;
+            document.getElementById('dmExtra').textContent = avgExtra;
+
+            if (decks.length === 0) {
+                container.innerHTML = '<div class="empty-state"><div class="icon">🃏</div><p>No decks saved yet. Create your first deck!</p></div>';
+                return;
+            }
+
+            const typeIcons = { aggro: '⚔️', control: '🛡️', combo: '🔗', stall: '⏱️', otk: '💥', burn: '🔥', mill: '📉', other: '❓' };
+
+            container.innerHTML = decks.map((deck, idx) => `
+                <div class="deck-item" onclick="viewDeckDetail(${idx})">
+                    <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                        <div>
+                            <div class="deck-name">${typeIcons[deck.type] || '❓'} ${deck.name}</div>
+                            <div class="deck-meta">${deck.archetype || deck.type} · ${deck.mainCount} main · ${deck.extraCount} extra · ${deck.sideCount} side</div>
+                            ${deck.keyCards ? '<div style="font-size: 11px; color: var(--accent-gold); margin-top: 4px;">🔑 ' + deck.keyCards + '</div>' : ''}
+                        </div>
+                        <div style="font-size: 11px; color: var(--text-muted);">${new Date(deck.createdAt).toLocaleDateString()}</div>
+                    </div>
+                    <div class="deck-actions">
+                        <button class="btn btn-secondary" onclick="event.stopPropagation(); exportSingleDeck(${idx})">📤 Export</button>
+                        <button class="btn btn-secondary" onclick="event.stopPropagation(); editDeck(${idx})">✏️ Edit</button>
+                        <button class="btn btn-danger" onclick="event.stopPropagation(); deleteDeck(${idx})">🗑️ Delete</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function saveDeck() {
+            const users = Storage.getUsers();
+            const username = AppState.currentUser?.username;
+            if (!username || !users[username]) return;
+            if (!users[username].decks) users[username].decks = [];
+
+            const name = document.getElementById('deckName').value.trim();
+            if (!name) {
+                showToast('Please enter a deck name');
+                return;
+            }
+
+            const deck = {
+                name: name,
+                archetype: document.getElementById('deckArchetype').value.trim(),
+                type: document.getElementById('deckType').value,
+                mainCount: parseInt(document.getElementById('deckMainCount').value) || 40,
+                extraCount: parseInt(document.getElementById('deckExtraCount').value) || 0,
+                sideCount: parseInt(document.getElementById('deckSideCount').value) || 0,
+                keyCards: document.getElementById('deckKeyCards').value.trim(),
+                notes: document.getElementById('deckNotes').value.trim(),
+                createdAt: new Date().toISOString()
+            };
+
+            const editIdx = AppState.editingDeckIndex;
+            if (editIdx !== undefined && editIdx !== null && users[username].decks[editIdx]) {
+                deck.createdAt = users[username].decks[editIdx].createdAt;
+                users[username].decks[editIdx] = deck;
+                AppState.editingDeckIndex = null;
+                showToast('Deck updated!');
+            } else {
+                users[username].decks.push(deck);
+                showToast('Deck created!');
+            }
+
+            Storage.saveUsers(users);
+            clearDeckForm();
+            navigateTo('deck-manager');
+            loadDecks();
+            updateProfileDisplay();
+        }
+
+        function editDeck(index) {
+            const users = Storage.getUsers();
+            const user = users[AppState.currentUser?.username];
+            const deck = user?.decks?.[index];
+            if (!deck) return;
+
+            AppState.editingDeckIndex = index;
+            document.getElementById('deckName').value = deck.name;
+            document.getElementById('deckArchetype').value = deck.archetype || '';
+            document.getElementById('deckType').value = deck.type;
+            document.getElementById('deckMainCount').value = deck.mainCount;
+            document.getElementById('deckExtraCount').value = deck.extraCount;
+            document.getElementById('deckSideCount').value = deck.sideCount;
+            document.getElementById('deckKeyCards').value = deck.keyCards || '';
+            document.getElementById('deckNotes').value = deck.notes || '';
+
+            showScreen('deck-editor');
+            document.querySelector('.logo-text').textContent = 'Edit Deck';
+        }
+
+        function deleteDeck(index) {
+            if (!confirm('Delete this deck? This cannot be undone.')) return;
+            const users = Storage.getUsers();
+            const username = AppState.currentUser?.username;
+            if (!username || !users[username]?.decks) return;
+            users[username].decks.splice(index, 1);
+            Storage.saveUsers(users);
+            loadDecks();
+            updateProfileDisplay();
+            showToast('Deck deleted');
+        }
+
+        function viewDeckDetail(index) {
+            const users = Storage.getUsers();
+            const user = users[AppState.currentUser?.username];
+            const deck = user?.decks?.[index];
+            if (!deck) return;
+
+            const typeLabels = { aggro: 'Aggro / Beatdown', control: 'Control', combo: 'Combo', stall: 'Stall / Defense', otk: 'OTK', burn: 'Burn', mill: 'Mill', other: 'Other' };
+            const info = `📋 ${deck.name}
+
+🎯 Type: ${typeLabels[deck.type] || deck.type}
+📦 Main: ${deck.mainCount} | Extra: ${deck.extraCount} | Side: ${deck.sideCount}
+${deck.archetype ? '🏛️ Archetype: ' + deck.archetype : ''}
+${deck.keyCards ? '🔑 Key Cards: ' + deck.keyCards : ''}
+
+📝 Notes:
+${deck.notes || 'No notes added'}
+
+📅 Created: ${new Date(deck.createdAt).toLocaleDateString()}`;
+
+            alert(info);
+        }
+
+        function exportSingleDeck(index) {
+            const users = Storage.getUsers();
+            const user = users[AppState.currentUser?.username];
+            const deck = user?.decks?.[index];
+            if (!deck) return;
+
+            const data = { exportType: 'single_deck', exportDate: new Date().toISOString(), deck: deck };
+            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'deck_' + deck.name.replace(/[\s]+/g, '_').toLowerCase() + '.json';
+            a.click();
+            URL.revokeObjectURL(url);
+            showToast('Deck exported!');
+        }
+
+        function importDeck() {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = '.json';
+            input.onchange = function(e) {
+                const file = e.target.files[0];
+                if (!file) return;
+                const reader = new FileReader();
+                reader.onload = function(evt) {
+                    try {
+                        const data = JSON.parse(evt.target.result);
+                        if (data.exportType === 'single_deck' && data.deck) {
+                            const users = Storage.getUsers();
+                            const username = AppState.currentUser?.username;
+                            if (!username || !users[username]) return;
+                            if (!users[username].decks) users[username].decks = [];
+                            data.deck.importedAt = new Date().toISOString();
+                            users[username].decks.push(data.deck);
+                            Storage.saveUsers(users);
+                            loadDecks();
+                            updateProfileDisplay();
+                            showToast('Deck imported!');
+                        } else {
+                            showToast('Invalid deck file');
+                        }
+                    } catch(err) {
+                        showToast('Error reading file');
+                    }
+                };
+                reader.readAsText(file);
+            };
+            input.click();
+        }
+
+        function clearDeckForm() {
+            document.getElementById('deckName').value = '';
+            document.getElementById('deckArchetype').value = '';
+            document.getElementById('deckType').value = 'aggro';
+            document.getElementById('deckMainCount').value = 40;
+            document.getElementById('deckExtraCount').value = 0;
+            document.getElementById('deckSideCount').value = 0;
+            document.getElementById('deckKeyCards').value = '';
+            document.getElementById('deckNotes').value = '';
+            AppState.editingDeckIndex = null;
+        }
+
+        // ==================== ACHIEVEMENTS ====================
+        function checkAchievements() {
+            const users = Storage.getUsers();
+            const user = users[AppState.currentUser?.username];
+            if (!user) return;
+            if (!user.achievements) user.achievements = {};
+            const ach = user.achievements;
+            const duels = user.duelRecords?.length || 0;
+            const photos = AppState.photos.length;
+            const decks = user.decks?.length || 0;
+            const created = new Date(user.createdAt || Date.now());
+            const days = Math.floor((Date.now() - created.getTime()) / (1000 * 60 * 60 * 24));
+
+            if (duels >= 1) unlockAch('first-duel', ach, 'firstDuel');
+            if (photos >= 10) unlockAch('collector', ach, 'collector');
+            if (decks >= 3) unlockAch('deck-builder', ach, 'deckBuilder');
+            if (duels >= 50) unlockAch('master', ach, 'master');
+            if (days >= 7) unlockAch('dedicated', ach, 'dedicated');
+
+            const survivorCheck = user.duelRecords?.some(d => d.lpRemaining > 0 && d.lpRemaining < 1000 && d.result === 'win');
+            if (survivorCheck) unlockAch('survivor', ach, 'survivor');
+
+            const unlocked = Object.values(ach).filter(v => v).length;
+            document.getElementById('achProgress').textContent = unlocked + '/6';
+            Storage.saveUsers(users);
+        }
+
+        function unlockAch(elId, achObj, key) {
+            achObj[key] = true;
+            const el = document.getElementById('ach-' + elId);
+            if (el) { el.textContent = '✅'; el.style.opacity = '1'; }
+        }
+
+        // Override navigateTo for new screens
+        const _origNavigate = navigateTo;
+        navigateTo = function(screen) {
+            const newScreens = ['profile-edit', 'avatar-picker', 'duel-history', 'deck-manager', 'deck-editor', 'achievements'];
+            if (newScreens.includes(screen)) {
+                showScreen(screen);
+                const titleMap = { 'profile-edit': 'Edit Profile', 'avatar-picker': 'Choose Avatar', 'duel-history': 'Duel History', 'deck-manager': 'My Decks', 'deck-editor': 'Edit Deck', 'achievements': 'Achievements' };
+                document.querySelector('.logo-text').textContent = titleMap[screen] || 'Duelist';
+                if (screen === 'profile-edit') loadProfileData();
+                if (screen === 'deck-manager') loadDecks();
+                if (screen === 'duel-history') loadDuelHistory();
+                if (screen === 'achievements') checkAchievements();
+            } else {
+                _origNavigate(screen);
+            }
+        };
+
+        // ==================== INITIALIZATION ====================
+        function init() {
+            Storage.load();
+            updateSettingsDisplay();
+            updateAllSettings();
+
+            if (AppState.currentUser) {
+                const users = Storage.getUsers();
+                const user = users[AppState.currentUser.username];
+                if (user && user.pin && AppState.settings.pinLock) {
+                    showScreen('pin');
+                    document.getElementById('pinTitle').textContent = 'Enter PIN';
+                    document.getElementById('pinSubtitle').textContent = 'Welcome back, ' + (users[AppState.currentUser.username]?.profile?.displayName || AppState.currentUser.username);
+                } else {
+                    enterApp();
+                }
+            }
+        }
+
+        document.addEventListener('backbutton', function(e) {
+            e.preventDefault();
+            const modal = document.getElementById('cameraModal');
+            const viewer = document.getElementById('imageViewer');
+            if (viewer.classList.contains('active')) closeImageViewer();
+            else if (modal.classList.contains('active')) closeCameraModal();
+        }, false);
+
+
+        // ==================== OPTIONS & PREFERENCES ====================
+
+        // Calculator Options
+        function toggleCalcOption(option) {
+            const calcSettings = AppState.settings.calcOptions || {
+                startingLP: 8000,
+                quickButtons: true,
+                autoReset: false,
+                confirmActions: true,
+                historyLimit: 50,
+                showTimer: false,
+                customButtons: [1000, 500, 500, 1000]
+            };
+
+            if (option === 'startingLP') {
+                const values = [4000, 8000, 16000, 20000];
+                const currentIdx = values.indexOf(calcSettings.startingLP);
+                calcSettings.startingLP = values[(currentIdx + 1) % values.length];
+                document.getElementById('calc-startingLP').textContent = calcSettings.startingLP;
+                showToast('Starting LP: ' + calcSettings.startingLP);
+            } else if (option === 'historyLimit') {
+                const values = [20, 50, 100, 200];
+                const currentIdx = values.indexOf(calcSettings.historyLimit);
+                calcSettings.historyLimit = values[(currentIdx + 1) % values.length];
+                document.getElementById('calc-historyLimit').textContent = calcSettings.historyLimit;
+                showToast('History limit: ' + calcSettings.historyLimit);
+            } else {
+                calcSettings[option] = !calcSettings[option];
+                const el = document.getElementById('calc-' + option);
+                if (el) el.classList.toggle('active', calcSettings[option]);
+                showToast(option + ' ' + (calcSettings[option] ? 'enabled' : 'disabled'));
+            }
+
+            AppState.settings.calcOptions = calcSettings;
+            Storage.save();
+        }
+
+        function saveCustomButton(index, value) {
+            const calcSettings = AppState.settings.calcOptions || { customButtons: [1000, 500, 500, 1000] };
+            calcSettings.customButtons[index - 1] = parseInt(value) || 500;
+            AppState.settings.calcOptions = calcSettings;
+            Storage.save();
+            showToast('Custom button ' + index + ' updated');
+        }
+
+        // Display Options
+        function toggleDisplayOption(option) {
+            const dispSettings = AppState.settings.displayOptions || {
+                darkMode: true,
+                highContrast: false,
+                largeText: false,
+                animations: true,
+                compactMode: false,
+                accentColor: 'gold'
+            };
+
+            dispSettings[option] = !dispSettings[option];
+            const el = document.getElementById('disp-' + option);
+            if (el) el.classList.toggle('active', dispSettings[option]);
+
+            AppState.settings.displayOptions = dispSettings;
+            Storage.save();
+            showToast(option + ' ' + (dispSettings[option] ? 'enabled' : 'disabled'));
+
+            if (option === 'largeText') {
+                document.body.style.fontSize = dispSettings.largeText ? '18px' : '';
+            }
+        }
+
+        function setAccentColor(color) {
+            const dispSettings = AppState.settings.displayOptions || {};
+            dispSettings.accentColor = color;
+            AppState.settings.displayOptions = dispSettings;
+            Storage.save();
+            showToast('Accent color: ' + color);
+            // In a real app, this would update CSS variables dynamically
+        }
+
+        // Data & Storage
+        function showStorageInfo() {
+            const data = localStorage.getItem('duelist_app_v2') || '';
+            const size = new Blob([data]).size;
+            const kb = (size / 1024).toFixed(1);
+            const photos = AppState.photos.length;
+            document.getElementById('storageUsage').textContent = kb + ' KB (' + photos + ' photos)';
+            showToast('Storage: ' + kb + ' KB used');
+        }
+
+        function exportData(mode) {
+            const users = Storage.getUsers();
+            const user = users[AppState.currentUser?.username];
+
+            const data = {
+                exportDate: new Date().toISOString(),
+                version: '1.2.0',
+                user: AppState.currentUser,
+                health: AppState.health,
+                healthHistory: AppState.healthHistory,
+                photos: AppState.photos,
+                settings: AppState.settings,
+                duelRecords: user?.duelRecords || [],
+                decks: user?.decks || [],
+                achievements: user?.achievements || {},
+                profile: user?.profile || {}
+            };
+
+            let output = JSON.stringify(data, null, 2);
+            let filename = 'duelist_backup_' + new Date().toISOString().split('T')[0] + '.json';
+
+            if (mode === 'encrypted') {
+                const password = prompt('Enter a password to encrypt your backup:');
+                if (!password) { showToast('Export cancelled'); return; }
+                output = btoa(output + '||SALT||' + password);
+                filename = 'duelist_backup_encrypted_' + new Date().toISOString().split('T')[0] + '.txt';
+            }
+
+            const blob = new Blob([output], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            a.click();
+            URL.revokeObjectURL(url);
+            showToast(mode === 'encrypted' ? 'Encrypted backup saved!' : 'Data exported!');
+        }
+
+        function importData() {
+            document.getElementById('importFileInput').click();
+        }
+
+        function handleImportFile(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    let content = e.target.result;
+                    let data;
+
+                    // Try to parse as JSON first
+                    try {
+                        data = JSON.parse(content);
+                    } catch(jsonErr) {
+                        // Might be encrypted - try to decrypt
+                        const password = prompt('This file may be encrypted. Enter password (or cancel if not encrypted):');
+                        if (password) {
+                            try {
+                                const decrypted = atob(content);
+                                const parts = decrypted.split('||SALT||');
+                                if (parts[1] === password) {
+                                    data = JSON.parse(parts[0]);
+                                } else {
+                                    showToast('Wrong password');
+                                    return;
+                                }
+                            } catch(decErr) {
+                                showToast('Invalid backup file');
+                                return;
+                            }
+                        } else {
+                            showToast('Import cancelled');
+                            return;
+                        }
+                    }
+
+                    if (!data || !data.exportDate) {
+                        showToast('Invalid backup file');
+                        return;
+                    }
+
+                    if (confirm('Import data from ' + new Date(data.exportDate).toLocaleDateString() + '? This will overwrite current data.')) {
+                        if (data.health) AppState.health = data.health;
+                        if (data.healthHistory) AppState.healthHistory = data.healthHistory;
+                        if (data.photos) AppState.photos = data.photos;
+                        if (data.settings) AppState.settings = { ...AppState.settings, ...data.settings };
+
+                        // Import user-specific data
+                        const users = Storage.getUsers();
+                        const username = AppState.currentUser?.username;
+                        if (username && users[username]) {
+                            if (data.duelRecords) users[username].duelRecords = data.duelRecords;
+                            if (data.decks) users[username].decks = data.decks;
+                            if (data.achievements) users[username].achievements = data.achievements;
+                            if (data.profile) users[username].profile = { ...users[username].profile, ...data.profile };
+                            Storage.saveUsers(users);
+                        }
+
+                        Storage.save();
+                        showToast('Data imported successfully!');
+                        renderPhotos();
+                        updateHealthDisplay();
+                        updateProfileDisplay();
+                    }
+                } catch(err) {
+                    showToast('Error importing file');
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        function backupNow() {
+            const now = new Date();
+            const timeStr = now.toLocaleTimeString();
+            document.getElementById('lastBackup').textContent = timeStr;
+            Storage.save();
+            showToast('Backup saved at ' + timeStr);
+        }
+
+        function clearHistory() {
+            if (!confirm('Clear all duel history? This cannot be undone.')) return;
+            AppState.healthHistory = [];
+            Storage.save();
+            renderHistory();
+            showToast('History cleared');
+        }
+
+        function clearPhotos() {
+            if (!confirm('Delete all photos? This cannot be undone.')) return;
+            AppState.photos = [];
+            Storage.save();
+            renderPhotos();
+            showToast('All photos deleted');
+        }
+
+        // Notification Options
+        function toggleNotifOption(option) {
+            const notifSettings = AppState.settings.notifOptions || {
+                enabled: false,
+                duelReminders: false,
+                lowLPAlert: true,
+                soundEffects: true,
+                hapticFeedback: true,
+                volume: 80
+            };
+
+            notifSettings[option] = !notifSettings[option];
+            const el = document.getElementById('notif-' + option);
+            if (el) el.classList.toggle('active', notifSettings[option]);
+
+            AppState.settings.notifOptions = notifSettings;
+            Storage.save();
+            showToast(option + ' ' + (notifSettings[option] ? 'enabled' : 'disabled'));
+        }
+
+        function updateVolume(value) {
+            document.getElementById('volumeValue').textContent = value + '%';
+            const notifSettings = AppState.settings.notifOptions || {};
+            notifSettings.volume = parseInt(value);
+            AppState.settings.notifOptions = notifSettings;
+            Storage.save();
+        }
+
+        // Duel Options
+        function toggleDuelOption(option) {
+            const duelSettings = AppState.settings.duelOptions || {
+                format: 'Master Duel',
+                startingHand: 5,
+                fieldCenter: false,
+                counters: true,
+                coinDice: true,
+                notes: false,
+                mainDeckSize: 40,
+                extraDeckSize: 15,
+                sideDeckSize: 15
+            };
+
+            if (option === 'format') {
+                const formats = ['Master Duel', 'Speed Duel', 'Rush Duel', 'Tag Duel'];
+                const currentIdx = formats.indexOf(duelSettings.format);
+                duelSettings.format = formats[(currentIdx + 1) % formats.length];
+                document.getElementById('duel-format').textContent = duelSettings.format;
+                showToast('Format: ' + duelSettings.format);
+            } else if (option === 'startingHand') {
+                const values = [4, 5, 6];
+                const currentIdx = values.indexOf(duelSettings.startingHand);
+                duelSettings.startingHand = values[(currentIdx + 1) % values.length];
+                document.getElementById('duel-startingHand').textContent = duelSettings.startingHand;
+                showToast('Starting hand: ' + duelSettings.startingHand);
+            } else {
+                duelSettings[option] = !duelSettings[option];
+                const el = document.getElementById('duel-' + option);
+                if (el) el.classList.toggle('active', duelSettings[option]);
+                showToast(option + ' ' + (duelSettings[option] ? 'enabled' : 'disabled'));
+            }
+
+            AppState.settings.duelOptions = duelSettings;
+            Storage.save();
+        }
+
+        function saveDeckSize(type, value) {
+            const duelSettings = AppState.settings.duelOptions || {};
+            duelSettings[type + 'DeckSize'] = parseInt(value) || 40;
+            AppState.settings.duelOptions = duelSettings;
+            Storage.save();
+            showToast(type.charAt(0).toUpperCase() + type.slice(1) + ' deck size updated');
+        }
+
+        // Update settings display to include all toggles
+        function updateAllSettings() {
+            updateSettingsDisplay();
+
+            // Calculator options
+            const calc = AppState.settings.calcOptions || {};
+            document.getElementById('calc-startingLP').textContent = calc.startingLP || 8000;
+            document.getElementById('calc-quickButtons').classList.toggle('active', calc.quickButtons !== false);
+            document.getElementById('calc-autoReset').classList.toggle('active', calc.autoReset === true);
+            document.getElementById('calc-confirmActions').classList.toggle('active', calc.confirmActions !== false);
+            document.getElementById('calc-historyLimit').textContent = calc.historyLimit || 50;
+            document.getElementById('calc-showTimer').classList.toggle('active', calc.showTimer === true);
+
+            // Display options
+            const disp = AppState.settings.displayOptions || {};
+            document.getElementById('disp-darkMode').classList.toggle('active', disp.darkMode !== false);
+            document.getElementById('disp-highContrast').classList.toggle('active', disp.highContrast === true);
+            document.getElementById('disp-largeText').classList.toggle('active', disp.largeText === true);
+            document.getElementById('disp-animations').classList.toggle('active', disp.animations !== false);
+            document.getElementById('disp-compactMode').classList.toggle('active', disp.compactMode === true);
+
+            // Notification options
+            const notif = AppState.settings.notifOptions || {};
+            document.getElementById('notif-enabled').classList.toggle('active', notif.enabled === true);
+            document.getElementById('notif-duelReminders').classList.toggle('active', notif.duelReminders === true);
+            document.getElementById('notif-lowLPAlert').classList.toggle('active', notif.lowLPAlert !== false);
+            document.getElementById('notif-soundEffects').classList.toggle('active', notif.soundEffects !== false);
+            document.getElementById('notif-hapticFeedback').classList.toggle('active', notif.hapticFeedback !== false);
+            if (notif.volume !== undefined) {
+                document.getElementById('volumeSlider').value = notif.volume;
+                document.getElementById('volumeValue').textContent = notif.volume + '%';
+            }
+
+            // Duel options
+            const duel = AppState.settings.duelOptions || {};
+            document.getElementById('duel-format').textContent = duel.format || 'Master Duel';
+            document.getElementById('duel-startingHand').textContent = duel.startingHand || 5;
+            document.getElementById('duel-fieldCenter').classList.toggle('active', duel.fieldCenter === true);
+            document.getElementById('duel-counters').classList.toggle('active', duel.counters !== false);
+            document.getElementById('duel-coinDice').classList.toggle('active', duel.coinDice !== false);
+            document.getElementById('duel-notes').classList.toggle('active', duel.notes === true);
+            document.getElementById('mainDeckSize').value = duel.mainDeckSize || 40;
+            document.getElementById('extraDeckSize').value = duel.extraDeckSize || 15;
+            document.getElementById('sideDeckSize').value = duel.sideDeckSize || 15;
+
+            // App stats
+            const created = AppState.currentUser ? new Date(AppState.currentUser.createdAt || Date.now()) : new Date();
+            const days = Math.floor((Date.now() - created.getTime()) / (1000 * 60 * 60 * 24));
+            document.getElementById('appStatDuels').textContent = AppState.healthHistory.filter(h => h.isReset).length || '0';
+            document.getElementById('appStatPhotos').textContent = AppState.photos.length;
+            document.getElementById('appStatDays').textContent = days;
+        }
+
+        init();
+    </script>
+</body>
+</html>
